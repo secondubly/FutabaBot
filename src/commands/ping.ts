@@ -1,4 +1,5 @@
 import { ApplyOptions } from '@sapphire/decorators';
+import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities';
 import { Command } from '@sapphire/framework';
 import { ApplicationCommandType, Message } from 'discord.js';
 
@@ -43,10 +44,15 @@ export class UserCommand extends Command {
 	}
 
 	private async sendPing(interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction) {
+		const channel = interactionOrMessage.channel
+		if(!isTextChannel(channel) || isStageChannel(channel)) {
+			return
+		}
+
 		const pingMessage =
-			interactionOrMessage instanceof Message
-				? await interactionOrMessage.channel.send({ content: 'Ping?' })
-				: await interactionOrMessage.reply({ content: 'Ping?', fetchReply: true });
+		interactionOrMessage instanceof Message
+			? await channel?.send({ content: 'Ping?' })
+			: await interactionOrMessage.reply({ content: 'Ping?', fetchReply: true });
 
 		const content = `Pong! Bot Latency ${Math.round(this.container.client.ws.ping)}ms. API Latency ${
 			pingMessage.createdTimestamp - interactionOrMessage.createdTimestamp
