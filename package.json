@@ -1,7 +1,7 @@
 {
   "name": "FutabaBot",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "dist/FutabaBot.js",
   "author": "@sapphire",
   "license": "UNLICENSE",
   "dependencies": {
@@ -24,9 +24,9 @@
     "typescript": "^4.9.5"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "start": "node dist/index.js",
+    "build": "tsc -b src",
+    "watch": "tsc -b src -w",
+    "start": "node dist/FutabaBot.js",
     "dev": "npm run build && npm run start",
     "watch:start": "tsc-watch --onSuccess \"npm run start\"",
     "format": "prettier --write \"src/\""
