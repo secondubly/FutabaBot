@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+    postgres:
+        image: postgres:12.14
+        container_name: postgres
+        hostname: postgres
+        env_file:
+            - ../src/.env.development.local
+        ports:
+            - ${DATABASE_PORT}:${DATABASE_PORT}
+        environment:
+            - POSTGRES_USER=${DB_USER}
+            - POSTGRES_PASSWORD=${DB_USER_PASS}
+            - POSTGRES_DB=${POSTGRES_DB_NAME}
+        restart: 'unless-stopped'
+
+    futababot:
+        build: .
+        depends_on:
+            - postgres
+        tty: true
+        volumes:
+            - ./:user/src/app/
