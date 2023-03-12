@@ -1,39 +1,43 @@
 {
-  "name": "FutabaBot",
-  "version": "1.0.0",
-  "main": "dist/FutabaBot.js",
-  "author": "@sapphire",
-  "license": "UNLICENSE",
-  "dependencies": {
-    "@sapphire/decorators": "^6.0.0",
-    "@sapphire/discord.js-utilities": "6.0.3",
-    "@sapphire/framework": "^4.2.1",
-    "@sapphire/plugin-logger": "^3.0.1",
-    "@sapphire/utilities": "^3.11.0",
-    "@skyra/env-utilities": "^1.1.0",
-    "colorette": "^2.0.19",
-    "discord.js": "^14.7.1"
-  },
-  "devDependencies": {
-    "@sapphire/prettier-config": "^1.4.5",
-    "@sapphire/ts-config": "^3.3.4",
-    "@types/node": "^18.15.0",
-    "@types/ws": "^8.5.4",
-    "@typescript-eslint/eslint-plugin": "^5.54.1",
-    "@typescript-eslint/parser": "^5.54.1",
-    "eslint": "^8.36.0",
-    "eslint-config-prettier": "^8.7.0",
-    "prettier": "^2.8.4",
-    "tsc-watch": "^6.0.0",
-    "typescript": "^4.9.5"
-  },
-  "scripts": {
-    "build": "tsc -b src",
-    "dev": "npm run build && npm run start",
-    "format": "prettier --ignore-path src/.prettierignore --config src/.prettierrc --write \"src/\"",
-    "lint": "eslint --ignore-path \"src/.eslintignore\" --ext .js,.ts .",
-    "start": "node dist/FutabaBot.js",
-    "watch": "tsc -b src -w",
-    "watch:start": "tsc-watch --onSuccess \"npm run start\""
-  }
+	"name": "FutabaBot",
+	"version": "1.0.0",
+	"main": "dist/FutabaBot.js",
+	"author": "secondubly",
+	"license": "MIT",
+	"imports": {
+		"#lib/*": "./dist/lib/*.js"
+	},
+	"dependencies": {
+		"@sapphire/decorators": "^6.0.0",
+		"@sapphire/discord.js-utilities": "6.0.3",
+		"@sapphire/framework": "^4.2.1",
+		"@sapphire/plugin-logger": "^3.0.1",
+		"@sapphire/utilities": "^3.11.0",
+		"@skyra/env-utilities": "^1.1.0",
+		"colorette": "^2.0.19",
+		"discord.js": "^14.7.1"
+	},
+	"devDependencies": {
+		"@sapphire/prettier-config": "^1.4.5",
+		"@sapphire/ts-config": "^3.3.4",
+		"@types/node": "^18.15.0",
+		"@types/ws": "^8.5.4",
+		"@typescript-eslint/eslint-plugin": "^5.54.1",
+		"@typescript-eslint/parser": "^5.54.1",
+		"eslint": "^8.36.0",
+		"eslint-config-prettier": "^8.7.0",
+		"prettier": "^2.8.4",
+		"ts-node": "^10.9.1",
+		"tsc-watch": "^6.0.0",
+		"typescript": "^4.9.5"
+	},
+	"scripts": {
+		"build": "tsc -b src",
+		"dev": "npm run build && npm run start",
+		"format": "prettier --ignore-path src/.prettierignore --config src/.prettierrc --write \"src/\"",
+		"lint": "eslint --ignore-path \"src/.eslintignore\" --ext .js,.ts .",
+		"start": "node dist/FutabaBot.js",
+		"watch": "tsc -b src -w",
+		"watch:start": "tsc-watch --onSuccess \"npm run start\""
+	}
 }

@@ -1,16 +1,7 @@
 import './lib/setup'
-import { LogLevel, SapphireClient } from '@sapphire/framework'
-import { GatewayIntentBits } from 'discord.js'
+import { FutabaClient } from '#lib/FutabaClient'
 
-const client = new SapphireClient({
-	defaultPrefix: '!',
-	caseInsensitiveCommands: true,
-	logger: {
-		level: LogLevel.Debug
-	},
-	intents: [GatewayIntentBits.DirectMessages, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent],
-	loadMessageCommandListeners: true
-})
+const client = new FutabaClient()
 
 const main = async () => {
 	try {
