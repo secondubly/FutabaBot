@@ -16,7 +16,6 @@ if (!nodeEnv || !Object.keys(envs).includes(nodeEnv)) {
 }
 
 process.env['NODE_ENV'] = envs[nodeEnv]
-console.log('Node Env: ', process.env['NODE_ENV'])
 
 require('dotenv-flow').config({
 	path: 'src/'
