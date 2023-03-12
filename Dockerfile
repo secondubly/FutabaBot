@@ -1,4 +1,4 @@
-FROM node:16-buster-slim
+FROM node:16-buster
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -22,13 +22,11 @@ COPY prisma ./prisma
 # Copy src files
 COPY src/ src/
 
-# Copy .env file for development
-COPY src/.env.development.local src/.env.development.local
-
 # Generate prisma client
 RUN npx prisma generate
 
 # Build the project
 RUN npm run build
 
-CMD ["npm", "run", "start"]
+# Run the start script in package.json
+CMD ["npm", "run", "start:docker"]

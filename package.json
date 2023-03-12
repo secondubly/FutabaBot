@@ -42,6 +42,7 @@
 		"format": "prettier --ignore-path src/.prettierignore --config src/.prettierrc --write \"src/\"",
 		"lint": "eslint --ignore-path \"src/.eslintignore\" --ext .js,.ts .",
 		"prisma": "node ./scripts/prisma.js",
+		"start:docker": "prisma migrate deploy && node dist/FutabaBot.js",
 		"start": "node dist/FutabaBot.js",
 		"watch": "tsc -b src -w",
 		"watch:start": "tsc-watch --onSuccess \"npm run start\""
