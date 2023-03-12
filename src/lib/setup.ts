@@ -12,7 +12,7 @@ import { srcDir } from './constants'
 ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite)
 
 // Read env var
-setup({ path: join(srcDir, '.env') })
+setup({ path: process.env.NODE_ENV === 'development' ? join(srcDir, '.env.development.local') : join(srcDir, '.env') })
 
 // Enable colorette
 colorette.createColors({ useColor: true })
