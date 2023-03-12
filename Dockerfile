@@ -1,4 +1,7 @@
-FROM node:16-buster
+FROM node:16-buster-slim
+
+# Prisma requires libssl-dev and ca-certificates as dependencies, so we install them here
+RUN apt-get update && apt-get install libssl-dev ca-certificates -y
 
 # Create app directory
 WORKDIR /usr/src/app
