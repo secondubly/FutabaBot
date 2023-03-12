@@ -19,6 +19,9 @@
     "@sapphire/ts-config": "^3.3.4",
     "@types/node": "^18.15.0",
     "@types/ws": "^8.5.4",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/parser": "^5.54.1",
+    "eslint": "^8.36.0",
     "prettier": "^2.8.4",
     "tsc-watch": "^6.0.0",
     "typescript": "^4.9.5"
