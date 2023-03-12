@@ -11,7 +11,6 @@ export class FutabaClient extends SapphireClient {
 	}
 
 	public async login(token?: string) {
-		console.log(this.dev)
 		const loginResponse = await super.login(token)
 		return loginResponse
 	}
