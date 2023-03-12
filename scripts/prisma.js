@@ -1,3 +1,7 @@
+/**
+ * Credit to: https://github.com/prisma/prisma/issues/3865#issuecomment-871592752
+ * Tweaked slightly for personal use
+ */
 'use strict'
 
 process.chdir(__dirname + '/..')
