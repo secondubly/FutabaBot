@@ -8,6 +8,7 @@
 		"#lib/*": "./dist/lib/*.js"
 	},
 	"dependencies": {
+		"@prisma/client": "^4.11.0",
 		"@sapphire/decorators": "^6.0.0",
 		"@sapphire/discord.js-utilities": "6.0.3",
 		"@sapphire/framework": "^4.2.1",
@@ -15,7 +16,8 @@
 		"@sapphire/utilities": "^3.11.0",
 		"@skyra/env-utilities": "^1.1.0",
 		"colorette": "^2.0.19",
-		"discord.js": "^14.7.1"
+		"discord.js": "^14.7.1",
+		"dotenv-flow": "^3.2.0"
 	},
 	"devDependencies": {
 		"@sapphire/prettier-config": "^1.4.5",
@@ -27,15 +29,18 @@
 		"eslint": "^8.36.0",
 		"eslint-config-prettier": "^8.7.0",
 		"prettier": "^2.8.4",
+		"prisma": "^4.11.0",
 		"ts-node": "^10.9.1",
 		"tsc-watch": "^6.0.0",
 		"typescript": "^4.9.5"
 	},
 	"scripts": {
 		"build": "tsc -b src",
-		"dev": "npm run build && npm run start",
+		"dev": "npm run build && npm run dev:start",
+		"dev:start": "dotenv -e .env.development.local node dist/FutabaBot.js",
 		"format": "prettier --ignore-path src/.prettierignore --config src/.prettierrc --write \"src/\"",
 		"lint": "eslint --ignore-path \"src/.eslintignore\" --ext .js,.ts .",
+		"prisma": "node ./scripts/prisma.js",
 		"start": "node dist/FutabaBot.js",
 		"watch": "tsc -b src -w",
 		"watch:start": "tsc-watch --onSuccess \"npm run start\""
