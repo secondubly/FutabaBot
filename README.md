@@ -1,10 +1,16 @@
 # TypeScript Sapphire Bot example
 
-This is a basic setup of a Discord bot using the [sapphire framework][sapphire] written in TypeScript
+A personal use discord bot written by myself. Built on top of the [sapphire framework][sapphire] and written in TypeScript.
 
 ## How to use it?
 
-### Prerequisite
+TODO
+
+### Prerequisites
+
+-   [Node.js][nodejs]
+-   [PostgreSQL][postgres]
+-   [Prisma][prisma]
 
 ```sh
 npm install
@@ -20,11 +26,14 @@ npm run watch:start
 
 ### Production
 
-You can also run the bot with `npm dev`, this will first build your code and then run `node ./dist/index.js`. But this is not the recommended way to run a bot in production.
+TODO
 
 ## License
 
-Dedicated to the public domain via the [Unlicense], courtesy of the Sapphire Community and its contributors.
+This project uses the [MIT License][mit].
 
 [sapphire]: https://github.com/sapphiredev/framework
-[unlicense]: https://github.com/sapphiredev/examples/blob/main/LICENSE.md
+[mit]: https://mit-license.org/
+[nodejs]: https://nodejs.org/en/download/current/
+[prisma]: https://www.prisma.io/
+[postgres]: https://www.postgresql.org/
