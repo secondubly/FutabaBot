@@ -58,7 +58,7 @@ export class UserCommand extends Command {
 			users.push(interaction.targetMessage.author)
 		} else {
 			// is a slash command
-			let usersToParse = (interaction as Command.ChatInputCommandInteraction).options.getString('members')?.split(/[\s,]+/)
+			const usersToParse = (interaction as Command.ChatInputCommandInteraction).options.getString('members')?.split(/[\s,]+/)
 
 			if (isNullishOrEmpty(usersToParse)) {
 				throw Error('No users provided.')
