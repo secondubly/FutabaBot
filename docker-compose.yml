@@ -1,9 +1,13 @@
-version: '3.8'
+version: '3.9'
 services:
     prisma-studio:
         container_name: prisma-studio
         image: timothyjmiller/prisma-studio:latest
         restart: unless-stopped
+        depends_on:
+            - postgres
+        profiles:
+            - dev
         environment:
             # prisma studio requires the env variable name be POSTGRES_URL
             - POSTGRES_URL=${DATABASE_URL}
@@ -22,7 +26,6 @@ services:
         restart: 'unless-stopped'
         volumes:
             - 'postgres-data:/var/lib/postgresql/data'
-
     futababot:
         build: .
         container_name: futababot
