@@ -5,7 +5,9 @@
 	"author": "secondubly",
 	"license": "MIT",
 	"imports": {
-		"#lib/*": "./dist/lib/*.js"
+		"#lib/*": "./dist/lib/*.js",
+		"#root/*": "./dist/*.js",
+		"#utils/*": "./dist/lib/util/functions/index.js"
 	},
 	"dependencies": {
 		"@prisma/client": "^4.11.0",
@@ -40,7 +42,7 @@
 		"dev": "npm run build && npm run dev:start",
 		"dev:start": "dotenv -e src/.env.development.local node dist/FutabaBot.js",
 		"format": "prettier --ignore-path src/.prettierignore --config src/.prettierrc --write \"src/\"",
-		"lint": "eslint --ignore-path \"src/.eslintignore\" --ext .js,.ts .",
+		"lint": "eslint --ignore-path \"src/.eslintignore\" -c \"src/.eslintrc\" --ext .js,.ts .",
 		"prisma": "node ./scripts/prisma.js",
 		"start:docker": "prisma migrate deploy && node dist/FutabaBot.js",
 		"start": "node dist/FutabaBot.js",
