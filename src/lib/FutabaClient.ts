@@ -1,6 +1,6 @@
 import { Enumerable } from '@sapphire/decorators'
 import { SapphireClient } from '@sapphire/framework'
-import { CLIENT_OPTIONS } from './constants'
+import { CLIENT_OPTIONS } from '#root/config'
 
 export class FutabaClient extends SapphireClient {
 	@Enumerable(false)

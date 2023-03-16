@@ -28,7 +28,7 @@ services:
             - 'postgres-data:/var/lib/postgresql/data'
     futababot:
         build: .
-        container_name: futababot
+        container_name: futababot-container
         # Our app does not work without our database
         # so this ensures our database is loaded first
         depends_on:
