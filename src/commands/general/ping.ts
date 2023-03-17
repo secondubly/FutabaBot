@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators'
-import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
 import { Command } from '@sapphire/framework'
+import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
 import { ApplicationCommandType, Message } from 'discord.js'
 
 @ApplyOptions<Command.Options>({
