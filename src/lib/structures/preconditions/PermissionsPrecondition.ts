@@ -1,6 +1,5 @@
 import { AllFlowsPrecondition, PreconditionResult, PieceContext, AsyncPreconditionResult } from '@sapphire/framework'
-// import type { ChatInputCommandInteraction, ContextMenuCommandInteraction, GuildCacheMessage, Message } from 'discord.js'
-import type { ChatInputCommandInteraction, ContextMenuCommandInteraction } from 'discord.js'
+import type { ChatInputCommandInteraction, ContextMenuCommandInteraction, Message } from 'discord.js'
 import { Identifiers } from '@sapphire/framework'
 import type { Command } from '@sapphire/framework'
 import type { GuildMessage } from '#lib/types'
@@ -26,6 +25,10 @@ export abstract class PermissionsPrecondition extends AllFlowsPrecondition {
 		command: Command,
 		context: PermissionsPrecondition.Context
 	): PermissionsPrecondition.Result
+
+	public override messageRun(message: Message, command: Command, context: AllFlowsPrecondition.Context) {
+		return this.handle(message as GuildMessage, command, context)
+	}
 
 	public chatInputRun(
 		interaction: ChatInputCommandInteraction,
