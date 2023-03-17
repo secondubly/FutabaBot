@@ -1,17 +1,18 @@
 import { ApplyOptions } from '@sapphire/decorators'
-import { Command, Args } from '@sapphire/framework'
+import type { Args, Command } from '@sapphire/framework'
 import { ApplicationCommandType, EmbedBuilder, Message } from 'discord.js'
-import type { User, GuildMember } from 'discord.js'
+import type { GuildMember, User } from 'discord.js'
 import { isNullishOrEmpty, isNullOrUndefinedOrEmpty } from '@sapphire/utilities'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
+import { ModerationComand } from '#lib/moderation'
 
-@ApplyOptions<Command.Options>({
+@ApplyOptions<ModerationComand.Options>({
 	description: 'Kicks a user from the sever with an optional reason',
 	requiredClientPermissions: ['KickMembers'],
 	aliases: ['k'],
 	typing: true
 })
-export class UserCommand extends Command {
+export class UserCommand extends ModerationComand {
 	// Register Chat Input and Context Menu command
 	public override registerApplicationCommands(registry: Command.Registry) {
 		// Register Chat Input command
@@ -32,7 +33,8 @@ export class UserCommand extends Command {
 
 	// Message command
 	public async messageRun(message: Message, args: Args) {
-		return this.kickUser(message, args)
+		const members = await args.repeat('member')
+		return this.kickUser(message, members)
 	}
 
 	// Chat Input (slash) command
@@ -45,11 +47,14 @@ export class UserCommand extends Command {
 		return this.kickUser(interaction)
 	}
 
-	private async kickUser(interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction, args?: Args) {
+	private async kickUser(
+		interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction,
+		memberArgs?: GuildMember[]
+	) {
 		// if we have an args value, then parse as many members as possible
-		const users: Promise<User[]> | User[] | undefined =
-			interactionOrMessage instanceof Message ? await args?.repeat('user') : await this.parseMembers(interactionOrMessage)
-		if (isNullOrUndefinedOrEmpty(users)) {
+		const members: Promise<GuildMember[]> | GuildMember[] | undefined =
+			interactionOrMessage instanceof Message ? memberArgs : await this.parseMembers(interactionOrMessage)
+		if (isNullOrUndefinedOrEmpty(members)) {
 			// TODO: spit back an error message
 			if (interactionOrMessage instanceof Message) {
 				// if this was a message command, we want to send back an embed response with an error
@@ -74,55 +79,109 @@ export class UserCommand extends Command {
 		const guild = interactionOrMessage.guild
 		if (!guild) {
 			// TODO something went wrong, return early
-		}
+			throw Error('There was no guild object, something isn’t right.')
+		} else {
+			// TODO: Do some request batching here - maybe 10 at a time?
+			const kickPromises: Promise<string | User | GuildMember>[] = []
+			for (const member of members) {
+				kickPromises.push(guild.members.kick(member))
+			}
 
-		// TODO: Do some request batching here - maybe 10 at a time?
-		const kickPromises: Promise<string | User | GuildMember>[] = []
-		for (const user of users!) {
-			kickPromises.push(guild!.members.kick(user))
-		}
+			const kickResults = await Promise.allSettled(kickPromises).catch((err) => {
+				console.error(err)
+				console.log('some promises failed to resolve')
+				throw err
+			})
 
-		await Promise.allSettled(kickPromises).catch((err) => {
-			console.error(err)
-			console.log('some promises failed to resolve')
-			throw err
-		})
+			const fulfilledResponses: (string | GuildMember | User)[] = []
+			kickResults.forEach((result) => {
+				if (result.status === 'fulfilled') {
+					fulfilledResponses.push(result.value)
+				}
+			})
+
+			if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
+				// none of the users could be kicked, let the author know!
+				if (interactionOrMessage instanceof Message) {
+					const channel = interactionOrMessage.channel
+
+					if (!isTextChannel(channel) || isStageChannel(channel)) {
+						return
+					}
+
+					const errorEmbed = new EmbedBuilder()
+						.setColor(0x800000) // TODO: set this color as a constant
+						.setDescription(`${interactionOrMessage.member}, None of the supplied members could be banned.`)
+
+					channel.send({ embeds: [errorEmbed] })
+				}
+			}
+
+			const response = `Successfully kicked ${fulfilledResponses.length} of ${members.length} members.`
+			if (interactionOrMessage instanceof Message) {
+				// if this was a message command, we want to send back an embed response with an error
+				const channel = interactionOrMessage.channel
+
+				if (!isTextChannel(channel) || isStageChannel(channel)) {
+					return
+				}
+
+				const successEmbed = new EmbedBuilder().setColor(0x800000).setDescription(response)
+
+				channel.send({ embeds: [successEmbed] })
+			} else {
+				// TODO: generic error response
+				interactionOrMessage.reply({ content: response, ephemeral: true })
+			}
+
+			return
+		}
 	}
 
-	private async parseMembers(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction): Promise<User[]> {
-		const users: User[] = []
+	private async parseMembers(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction): Promise<GuildMember[]> {
+		const members: GuildMember[] = []
 		if (interaction.isUserContextMenuCommand()) {
-			users.push(interaction.targetUser)
+			const targetGuildMember = interaction.targetMember as GuildMember
+			if (targetGuildMember && targetGuildMember.kickable) {
+				members.push(targetGuildMember)
+			}
 		} else if (interaction.isMessageContextMenuCommand()) {
-			users.push(interaction.targetMessage.author)
+			if (interaction.targetMessage.member && interaction.targetMessage.member.kickable) {
+				members.push(interaction.targetMessage.member)
+			}
 		} else {
 			// is a slash command
-			const usersToParse = (interaction as Command.ChatInputCommandInteraction).options.getString('members')?.split(/[\s,]+/)
+			const membersToParse = (interaction as Command.ChatInputCommandInteraction).options.getString('members')?.split(/[\s,]+/)
 
-			if (isNullishOrEmpty(usersToParse)) {
+			if (isNullishOrEmpty(membersToParse)) {
 				throw Error('No users provided.')
 			}
 
-			// I originally was using a forEach loop here, see an explanation here on why that's a terrilbe idea
+			const guild = interaction.guild
+
+			if (!guild) {
+				// if this was not sent in a guild then throw an error
+				throw Error('There was no guild object, something isn’t right.')
+			}
+
+			// I originally was using a forEach loop here, see an explanation here on why that's a terrible idea
 			// REF: https://stackoverflow.com/a/37576787
-			for (const userID of usersToParse) {
-				const strippedUserID = userID.replace(/\D/g, '')
-				if (isNullishOrEmpty(strippedUserID)) {
+			for (const memberID of membersToParse) {
+				const strippedMemberID = memberID.replace(/\D/g, '')
+				if (isNullishOrEmpty(strippedMemberID)) {
 					continue
 				}
 
-				console.log(await this.container.client.users.fetch(strippedUserID))
-				const user = await this.container.client.users.fetch(strippedUserID).catch((err) => {
+				const member = await guild.members.fetch(strippedMemberID).catch((err) => {
 					console.error(err)
 					throw err
 				})
 
-				console.log(user)
-				if (user) {
-					users.push(user)
+				if (member) {
+					members.push(member)
 				}
 			}
 		}
-		return users
+		return members
 	}
 }

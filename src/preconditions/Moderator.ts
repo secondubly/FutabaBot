@@ -1,27 +1,23 @@
-// import { isModerator } from '#utils/functions'
-// import { AllFlowsPrecondition } from '@sapphire/framework'
-// import type { Message, CommandInteraction, ContextMenuCommandInteraction, GuildMember } from 'discord.js'
+import { PermissionsPrecondition } from '#lib/structures'
+import type { GuildMessage } from '#lib/types'
+import { isModerator } from '#utils/functions'
+import { GuildMember, Message } from 'discord.js'
+import { CommandInteraction, ContextMenuCommandInteraction } from 'discord.js'
 
-// export class UserPrecondition extends AllFlowsPrecondition {
-// 	public override async messageRun(message: Message) {
-// 		// for Message Commands
-// 		return this.checkModerator(message.member!)
-// 	}
+export class UserPrecondition extends PermissionsPrecondition {
+	public override async messageRun(message: Message) {
+		return this.handle(message as GuildMessage)
+	}
+	public async handle(message: GuildMessage | CommandInteraction | ContextMenuCommandInteraction): PermissionsPrecondition.AsyncResult {
+		if (message instanceof Message) {
+			if (message.author.id) {
+				return isModerator(message.member) ? this.ok() : this.error({ message: 'Only moderators can use this command!' })
+			}
+		} else if (message instanceof CommandInteraction) {
+			return isModerator(message.member as GuildMember) ? this.ok() : this.error({ message: 'Only moderators can use this command!' })
+		}
 
-// 	public override async chatInputRun(interaction: CommandInteraction) {
-// 		// for Slash Commands
-// 		return this.checkModerator(interaction.member)
-// 	}
-
-// 	public override async contextMenuRun(interaction: ContextMenuCommandInteraction) {
-// 		// for Context Menu Command
-// 		if (interaction.isMessageContextMenuCommand()) {
-// 			return this.checkModerator(interaction.member)
-// 		}
-// 		return this.checkModerator(interaction.user)
-// 	}
-
-// 	private async checkModerator(user: GuildMember) {
-// 		return isModerator(user) ? this.ok() : this.error({ message: 'Only the bot owner can use this command!' })
-// 	}
-// }
+		const guildMember = (message as ContextMenuCommandInteraction).member as GuildMember
+		return isModerator(guildMember) ? this.ok() : this.error({ message: 'Only moderators can use this command!' })
+	}
+}

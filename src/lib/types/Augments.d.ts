@@ -5,3 +5,13 @@ declare module '@skyra/env-utilities' {
 		CLIENT_OWNERS: ArrayString
 	}
 }
+
+declare module '@sapphire/framework' {
+	interface Preconditions {
+		Administrator: never
+		BotOwner: never
+		Everyone: never
+		Moderator: never
+		ServerOwner: never
+	}
+}
