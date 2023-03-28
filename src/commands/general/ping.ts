@@ -1,33 +1,14 @@
 import { ApplyOptions } from '@sapphire/decorators'
-import { Command } from '@sapphire/framework'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
-import { ApplicationCommandType, Message } from 'discord.js'
+import { Message } from 'discord.js'
+import { FutabaCommand } from '#lib/structures'
+import type { Command } from '@sapphire/framework'
+// import { ApplicationCommandType } from 'discord.js'
 
-@ApplyOptions<Command.Options>({
+@ApplyOptions<FutabaCommand.Options>({
 	description: 'ping pong'
 })
-export class UserCommand extends Command {
-	// Register Chat Input and Context Menu command
-	public override registerApplicationCommands(registry: Command.Registry) {
-		// Register Chat Input command
-		registry.registerChatInputCommand({
-			name: this.name,
-			description: this.description
-		})
-
-		// Register Context Menu command available from any message
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.Message
-		})
-
-		// Register Context Menu command available from any user
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.User
-		})
-	}
-
+export class UserCommand extends FutabaCommand {
 	// Message command
 	public async messageRun(message: Message) {
 		return this.sendPing(message)

@@ -17,7 +17,7 @@ export class UserPrecondition extends PermissionsPrecondition {
 			return isModerator(message.member as GuildMember) ? this.ok() : this.error({ message: 'Only moderators can use this command!' })
 		}
 
-		const guildMember = (message as ContextMenuCommandInteraction).member as GuildMember
+		const guildMember = (message as unknown as ContextMenuCommandInteraction).member as GuildMember
 		return isModerator(guildMember) ? this.ok() : this.error({ message: 'Only moderators can use this command!' })
 	}
 }

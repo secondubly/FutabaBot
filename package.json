@@ -6,6 +6,8 @@
 	"license": "MIT",
 	"imports": {
 		"#lib/*": "./dist/lib/*.js",
+		"#lib/moderation": "./dist/lib/moderation/index.js",
+		"#lib/structures": "./dist/lib/structures/index.js",
 		"#root/*": "./dist/*.js",
 		"#utils/*": "./dist/lib/util/functions/index.js"
 	},
@@ -15,7 +17,6 @@
 		"@sapphire/discord.js-utilities": "6.0.3",
 		"@sapphire/framework": "^4.2.1",
 		"@sapphire/plugin-logger": "^3.0.1",
-		"@sapphire/plugin-subcommands": "^4.0.0",
 		"@sapphire/utilities": "^3.11.0",
 		"@skyra/env-utilities": "^1.1.0",
 		"colorette": "^2.0.19",

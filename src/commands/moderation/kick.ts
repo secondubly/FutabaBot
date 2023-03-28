@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Args, Command } from '@sapphire/framework'
-import { ApplicationCommandType, EmbedBuilder, Message } from 'discord.js'
+import { EmbedBuilder, Message } from 'discord.js'
 import type { GuildMember, User } from 'discord.js'
 import { isNullishOrEmpty, isNullOrUndefinedOrEmpty } from '@sapphire/utilities'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
@@ -13,24 +13,6 @@ import { ModerationComand } from '#lib/moderation'
 	typing: true
 })
 export class UserCommand extends ModerationComand {
-	// Register Chat Input and Context Menu command
-	public override registerApplicationCommands(registry: Command.Registry) {
-		// Register Chat Input command
-		registry.registerChatInputCommand((builder) =>
-			builder
-				.setName(this.name)
-				.setDescription(this.description)
-				.addStringOption((option) => option.setName('members').setDescription('Users to kick.').setRequired(true))
-				.addStringOption((option) => option.setName('reason').setDescription('Reason why the users were kicked.'))
-		)
-
-		// Register Context Menu command available from any message
-		registry.registerContextMenuCommand((builder) => builder.setName(this.name).setType(ApplicationCommandType.Message))
-
-		// Register Context Menu command available from any user
-		registry.registerContextMenuCommand((builder) => builder.setName(this.name).setType(ApplicationCommandType.User))
-	}
-
 	// Message command
 	public async messageRun(message: Message, args: Args) {
 		const members = await args.repeat('member')
