@@ -4,15 +4,15 @@ import { EmbedBuilder, Message } from 'discord.js'
 import type { GuildMember, User } from 'discord.js'
 import { isNullishOrEmpty, isNullOrUndefinedOrEmpty } from '@sapphire/utilities'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
-import { ModerationComand } from '#lib/moderation'
+import { ModerationCommand } from '#lib/moderation'
 
-@ApplyOptions<ModerationComand.Options>({
+@ApplyOptions<ModerationCommand.Options>({
 	description: 'Kicks a user from the sever with an optional reason',
 	requiredClientPermissions: ['KickMembers'],
 	aliases: ['k'],
 	typing: true
 })
-export class UserCommand extends ModerationComand {
+export class UserCommand extends ModerationCommand {
 	// Message command
 	public async messageRun(message: Message, args: Args) {
 		const members = await args.repeat('member')
