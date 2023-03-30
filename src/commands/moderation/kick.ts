@@ -159,7 +159,7 @@ export class UserCommand extends ModerationCommand {
 			const membersToParse = (interaction as Command.ChatInputCommandInteraction).options.getString('members')?.split(/[\s,]+/)
 
 			if (isNullishOrEmpty(membersToParse)) {
-				throw Error('No users provided.')
+				return members // return early
 			}
 
 			const guild = interaction.guild
