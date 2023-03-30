@@ -10,6 +10,7 @@ import { Message, EmbedBuilder } from 'discord.js'
 	aliases: ['b'],
 	description: 'Ban users with an optional reason',
 	requiredClientPermissions: ['BanMembers'],
+	requiredMember: true,
 	typing: true
 })
 export class UserCommand extends ModerationCommand {
@@ -129,6 +130,7 @@ export class UserCommand extends ModerationCommand {
 		}
 	}
 
+	// TODO move to a util function
 	private async parseMembers(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction): Promise<GuildMember[]> {
 		const members: GuildMember[] = []
 		if (interaction.isUserContextMenuCommand()) {
