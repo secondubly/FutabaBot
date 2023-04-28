@@ -27,49 +27,81 @@ export class UserCommand extends ModerationCommand {
 	// Message command
 	public async messageRun(message: Message, args: Args) {
 		const members = await args.repeat('member')
-		return this.banUser(message, members)
+		return this.banUserFromMessage(message, members)
 	}
 
 	// Chat Input (slash) command
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-		return this.banUser(interaction)
+		return this.banUserFromInteraction(interaction)
 	}
 
 	// Context Menu command
 	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {
-		return this.banUser(interaction)
+		return this.banUserFromInteraction(interaction)
 	}
 
-	private async banUser(
-		interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction,
-		memberArgs?: GuildMember[]
-	) {
-		const members: Promise<GuildMember[]> | GuildMember[] | undefined =
-			interactionOrMessage instanceof Message ? memberArgs : await parseMembers(interactionOrMessage)
-
-		if (isNullOrUndefinedOrEmpty(members)) {
-			// TODO: spit back an error message
-			if (interactionOrMessage instanceof Message) {
-				// if this was a message command, we want to send back an embed response with an error
-				const channel = interactionOrMessage.channel
-
-				if (!isTextChannel(channel) || isStageChannel(channel)) {
-					return
-				}
-
-				const errorEmbed = new EmbedBuilder()
-					.setColor(0x800000)
-					.setDescription(`${interactionOrMessage.member}, You provided invalid input, please check your input and try again.`)
-
-				channel.send({ embeds: [errorEmbed] })
-			} else {
-				// TODO: generic error response
-				interactionOrMessage.reply({ content: 'You provided invalid input, please check your input and try again.', ephemeral: true })
-			}
+	private async banUserFromMessage(message: Message, members: GuildMember[]) {
+		const channel = message.channel
+		if (!isTextChannel(channel) || isStageChannel(channel)) {
 			return
 		}
 
-		const guild = interactionOrMessage.guild
+		if (isNullOrUndefinedOrEmpty(members)) {
+			const errorEmbed = new EmbedBuilder()
+				.setColor(0x800000)
+				.setDescription(`${message.member}, You provided invalid input, please check your input and try again.`)
+
+			channel.send({ embeds: [errorEmbed] })
+			return
+		}
+
+		if (!message.guild) {
+			throw Error('There was no guild object, something isn’t right.')
+		}
+
+		const guild = message.guild
+		const banPromises: Promise<string | User | GuildMember>[] = []
+
+		for (const member of members) {
+			banPromises.push(guild.members.ban(member))
+		}
+
+		const banResults = await Promise.allSettled(banPromises).catch((err) => {
+			console.error(err)
+			console.log('some promises failed to resolve')
+			throw err
+		})
+
+		const fulfilledResponses: (string | GuildMember | User)[] = []
+		banResults.forEach((result) => {
+			if (result.status === 'fulfilled') {
+				fulfilledResponses.push(result.value)
+			}
+		})
+
+		if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
+			const errorEmbed = new EmbedBuilder()
+				.setColor(0x800000) // TODO: set this color as a constant
+				.setDescription(`${message.member}, None of the supplied members could be banned.`)
+			channel.send({ embeds: [errorEmbed] })
+			return
+		}
+
+		const response = `Successfully kicked ${fulfilledResponses.length} out of ${members.length} members.`
+		channel.send(response)
+		return
+	}
+
+	private async banUserFromInteraction(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction) {
+		const members = await parseMembers(interaction)
+
+		if (isNullOrUndefinedOrEmpty(members)) {
+			// TODO: generic error response
+			interaction.reply({ content: 'You provided invalid input, please check your input and try again.', ephemeral: true })
+			return
+		}
+
+		const guild = interaction.guild
 		if (!guild) {
 			// TODO something went wrong, return early
 			throw Error('There was no guild object, something isn’t right.')
@@ -77,17 +109,17 @@ export class UserCommand extends ModerationCommand {
 			// TODO: Do some request batching here - maybe 10 at a time?
 			const kickPromises: Promise<string | User | GuildMember>[] = []
 			for (const member of members) {
-				kickPromises.push(guild.members.kick(member))
+				kickPromises.push(guild.members.ban(member))
 			}
 
-			const kickResults = await Promise.allSettled(kickPromises).catch((err) => {
+			const banResults = await Promise.allSettled(kickPromises).catch((err) => {
 				console.error(err)
 				console.log('some promises failed to resolve')
 				throw err
 			})
 
 			const fulfilledResponses: (string | GuildMember | User)[] = []
-			kickResults.forEach((result) => {
+			banResults.forEach((result) => {
 				if (result.status === 'fulfilled') {
 					fulfilledResponses.push(result.value)
 				}
@@ -95,38 +127,13 @@ export class UserCommand extends ModerationCommand {
 
 			if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
 				// none of the users could be kicked, let the author know!
-				if (interactionOrMessage instanceof Message) {
-					const channel = interactionOrMessage.channel
-
-					if (!isTextChannel(channel) || isStageChannel(channel)) {
-						return
-					}
-
-					const errorEmbed = new EmbedBuilder()
-						.setColor(0x800000) // TODO: set this color as a constant
-						.setDescription(`${interactionOrMessage.member}, None of the supplied members could be banned.`)
-
-					channel.send({ embeds: [errorEmbed] })
-				}
+				const response = 'None of the supplied authors could be banned.'
+				interaction.reply({ content: response, ephemeral: true })
+				return
 			}
 
-			const response = `Successfully kicked ${fulfilledResponses.length} of ${members.length} members.`
-			if (interactionOrMessage instanceof Message) {
-				// if this was a message command, we want to send back an embed response with an error
-				const channel = interactionOrMessage.channel
-
-				if (!isTextChannel(channel) || isStageChannel(channel)) {
-					return
-				}
-
-				const successEmbed = new EmbedBuilder().setColor(0x800000).setDescription(response)
-
-				channel.send({ embeds: [successEmbed] })
-			} else {
-				// TODO: generic error response
-				interactionOrMessage.reply({ content: response, ephemeral: true })
-			}
-
+			const response = `Successfully kicked ${fulfilledResponses.length} out of ${members.length} members.`
+			interaction.reply({ content: response, ephemeral: true })
 			return
 		}
 	}

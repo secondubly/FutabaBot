@@ -40,20 +40,88 @@ export class UserCommand extends ModerationCommand {
 	// Message command
 	public async messageRun(message: Message, args: Args) {
 		const members = await args.repeat('member')
-		return this.kickUser(message, members)
+		return this.kickUserFromMessage(message, members)
 	}
 
 	// Chat Input (slash) command
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-		return this.kickUser(interaction)
+		return this.kickUserFromInteraction(interaction)
 	}
 
 	// Context Menu command
 	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {
-		return this.kickUser(interaction)
+		return this.kickUserFromInteraction(interaction)
 	}
 
-	private async kickUser(
+	private async kickUserFromMessage(message: Message, memberArgs?: GuildMember[]) {
+		// if we have an args value, then parse as many members as possible
+		const members = memberArgs
+		const channel = message.channel
+
+		if (isNullOrUndefinedOrEmpty(members)) {
+			// TODO: spit back an error message
+
+			if (!isTextChannel(channel) || isStageChannel(channel)) {
+				return
+			}
+
+			const errorEmbed = new EmbedBuilder()
+				.setColor(0x800000)
+				.setDescription(`${message.member}, You provided invalid input, please check your input and try again.`)
+
+			channel.send({ embeds: [errorEmbed] })
+			return
+		}
+
+		if (!message.guild) {
+			// TODO something went wrong, return early
+			throw Error('There was no guild object, something isn’t right.')
+		}
+
+		const guild = message.guild
+		// TODO: Do some request batching here - maybe 10 at a time?
+		const kickPromises: Promise<string | User | GuildMember>[] = []
+		for (const member of members) {
+			kickPromises.push(guild.members.kick(member))
+		}
+
+		const kickResults = await Promise.allSettled(kickPromises).catch((err) => {
+			console.error(err)
+			console.log('some promises failed to resolve')
+			throw err
+		})
+
+		const fulfilledResponses: (string | GuildMember | User)[] = []
+		kickResults.forEach((result) => {
+			if (result.status === 'fulfilled') {
+				fulfilledResponses.push(result.value)
+			}
+		})
+
+		if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
+			// none of the users could be kicked, let the author know!
+			const channel = message.channel
+
+			if (!isTextChannel(channel) || isStageChannel(channel)) {
+				return
+			}
+
+			const errorEmbed = new EmbedBuilder()
+				.setColor(0x800000) // TODO: set this color as a constant
+				.setDescription(`${message.member}, None of the supplied members could be banned.`)
+
+			channel.send({ embeds: [errorEmbed] })
+		}
+
+		const response = `Successfully kicked ${fulfilledResponses.length} of ${members.length} members.`
+		const successEmbed = new EmbedBuilder().setColor(0x800000).setDescription(response)
+
+		channel.send({ embeds: [successEmbed] })
+
+		return
+	}
+
+	private async kickUserFromInteraction(
 		interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction,
 		memberArgs?: GuildMember[]
 	) {
