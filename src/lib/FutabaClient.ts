@@ -1,5 +1,5 @@
 import { Enumerable } from '@sapphire/decorators'
-import { SapphireClient } from '@sapphire/framework'
+import { SapphireClient, container } from '@sapphire/framework'
 import { CLIENT_OPTIONS } from '#root/config'
 
 export class FutabaClient extends SapphireClient {
@@ -13,5 +13,10 @@ export class FutabaClient extends SapphireClient {
 	public async login(token?: string) {
 		const loginResponse = await super.login(token)
 		return loginResponse
+	}
+
+	public async destroy() {
+		container.db.$disconnect
+		return super.destroy()
 	}
 }
