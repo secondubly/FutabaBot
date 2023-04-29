@@ -1,5 +1,5 @@
 import { container } from '@sapphire/framework'
-import type { GuildSettings } from './structures/GuildSettings'
+import { GuildSettings } from './structures/GuildSettings'
 import type { Prisma } from '@prisma/client'
 
 export class SettingsManager {
@@ -10,6 +10,13 @@ export class SettingsManager {
 			where: { guild: { in: guildIDs } }
 		})
 
+		for (const guildID of guildIDs) {
+			const settingsJson = guildSettings.find((setting) => setting.guild === guildID)
+			if (!settingsJson) {
+				// create an empty settings map
+				this.settings.set(guildID, new GuildSettings(guildID))
+			}
+		}
 		for (const setting of guildSettings) {
 			const settingsJson = setting.settings as Prisma.JsonObject
 			console.log(settingsJson)

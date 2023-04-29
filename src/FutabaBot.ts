@@ -9,7 +9,6 @@ const main = async () => {
 	try {
 		client.logger.info('Connecting to database')
 		container.db = new PrismaClient()
-		container.db.$connect
 		client.logger.info('Logging in')
 		await client.login()
 		client.logger.info('logged in')
