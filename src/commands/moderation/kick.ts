@@ -57,14 +57,11 @@ export class UserCommand extends ModerationCommand {
 		// if we have an args value, then parse as many members as possible
 		const members = memberArgs
 		const channel = message.channel
+		if (!isTextChannel(channel) || isStageChannel(channel)) {
+			return
+		}
 
 		if (isNullOrUndefinedOrEmpty(members)) {
-			// TODO: spit back an error message
-
-			if (!isTextChannel(channel) || isStageChannel(channel)) {
-				return
-			}
-
 			const errorEmbed = new EmbedBuilder()
 				.setColor(0x800000)
 				.setDescription(`${message.member}, You provided invalid input, please check your input and try again.`)
@@ -74,7 +71,6 @@ export class UserCommand extends ModerationCommand {
 		}
 
 		if (!message.guild) {
-			// TODO something went wrong, return early
 			throw Error('There was no guild object, something isn’t right.')
 		}
 
@@ -100,12 +96,6 @@ export class UserCommand extends ModerationCommand {
 
 		if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
 			// none of the users could be kicked, let the author know!
-			const channel = message.channel
-
-			if (!isTextChannel(channel) || isStageChannel(channel)) {
-				return
-			}
-
 			const errorEmbed = new EmbedBuilder()
 				.setColor(0x800000) // TODO: set this color as a constant
 				.setDescription(`${message.member}, None of the supplied members could be banned.`)
@@ -117,40 +107,22 @@ export class UserCommand extends ModerationCommand {
 		const successEmbed = new EmbedBuilder().setColor(0x800000).setDescription(response)
 
 		channel.send({ embeds: [successEmbed] })
-
 		return
 	}
 
 	private async kickUserFromInteraction(
-		interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction,
+		interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction,
 		memberArgs?: GuildMember[]
 	) {
 		// if we have an args value, then parse as many members as possible
 		const members: Promise<GuildMember[]> | GuildMember[] | undefined =
-			interactionOrMessage instanceof Message ? memberArgs : await parseMembers(interactionOrMessage)
+			interaction instanceof Message ? memberArgs : await parseMembers(interaction)
 		if (isNullOrUndefinedOrEmpty(members)) {
-			// TODO: spit back an error message
-			if (interactionOrMessage instanceof Message) {
-				// if this was a message command, we want to send back an embed response with an error
-				const channel = interactionOrMessage.channel
-
-				if (!isTextChannel(channel) || isStageChannel(channel)) {
-					return
-				}
-
-				const errorEmbed = new EmbedBuilder()
-					.setColor(0x800000)
-					.setDescription(`${interactionOrMessage.member}, You provided invalid input, please check your input and try again.`)
-
-				channel.send({ embeds: [errorEmbed] })
-			} else {
-				// TODO: generic error response
-				interactionOrMessage.reply({ content: 'You provided invalid input, please check your input and try again.', ephemeral: true })
-			}
+			interaction.reply({ content: 'You provided invalid input, please check your input and try again.', ephemeral: true })
 			return
 		}
 
-		const guild = interactionOrMessage.guild
+		const guild = interaction.guild
 		if (!guild) {
 			// TODO something went wrong, return early
 			throw Error('There was no guild object, something isn’t right.')
@@ -175,38 +147,12 @@ export class UserCommand extends ModerationCommand {
 			})
 
 			if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
-				// none of the users could be kicked, let the author know!
-				if (interactionOrMessage instanceof Message) {
-					const channel = interactionOrMessage.channel
-
-					if (!isTextChannel(channel) || isStageChannel(channel)) {
-						return
-					}
-
-					const errorEmbed = new EmbedBuilder()
-						.setColor(0x800000) // TODO: set this color as a constant
-						.setDescription(`${interactionOrMessage.member}, None of the supplied members could be banned.`)
-
-					channel.send({ embeds: [errorEmbed] })
-				}
+				interaction.reply({ content: `None of the supplied members could be banned.` })
+				return
 			}
 
-			const response = `Successfully kicked ${fulfilledResponses.length} of ${members.length} members.`
-			if (interactionOrMessage instanceof Message) {
-				// if this was a message command, we want to send back an embed response with an error
-				const channel = interactionOrMessage.channel
-
-				if (!isTextChannel(channel) || isStageChannel(channel)) {
-					return
-				}
-
-				const successEmbed = new EmbedBuilder().setColor(0x800000).setDescription(response)
-
-				channel.send({ embeds: [successEmbed] })
-			} else {
-				// TODO: generic error response
-				interactionOrMessage.reply({ content: response, ephemeral: true })
-			}
+			const response = `Successfully kicked ${fulfilledResponses.length} out of ${members.length} members.`
+			interaction.reply({ content: response, ephemeral: true })
 
 			return
 		}
