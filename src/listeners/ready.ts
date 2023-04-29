@@ -11,6 +11,7 @@ export class UserEvent extends Listener {
 	public run() {
 		this.printBanner()
 		this.printStoreDebugInformation()
+		this.settingsSetup()
 	}
 
 	private printBanner() {
@@ -46,5 +47,11 @@ ${line03}${dev ? ` ${pad}${blc('<')}${llc('/')}${blc('>')} ${llc('DEVELOPMENT MO
 
 	private styleStore(store: Store<any>, last: boolean) {
 		return gray(`${last ? '└─' : '├─'} Loaded ${this.style(store.size.toString().padEnd(3, ' '))} ${store.name}.`)
+	}
+
+	private settingsSetup() {
+		const { client } = this.container
+		const guildIDs = Array.from(client.guilds.cache.keys())
+		this.container.settings.setup(guildIDs)
 	}
 }
