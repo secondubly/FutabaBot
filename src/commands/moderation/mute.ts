@@ -23,60 +23,48 @@ export class UserCommand extends ModerationCommand {
 		)
 	}
 
-	// Message Command
 	public async messageRun(message: Message, args: Args) {
 		const members = await args.repeat('member')
 		const reason = args.finished ? 'No reason provided.' : await args.rest('string')
 
-		const mutedUsers = this.muteUser(message, members, reason)
+		const mutedUsers = this.muteUserFromMessage(message, members, reason)
 	}
 
-	// Chat Input (slash) command
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
 		return this.muteUser(interaction)
 	}
 
-	// Context Menu command
 	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {
 		return this.muteUser(interaction)
 	}
 
-	private async muteUser(
-		interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction,
-		memberArgs?: GuildMember[],
-		reason?: string
-	) {
-		const members: Promise<GuildMember[]> | GuildMember[] | undefined =
-			interactionOrMessage instanceof Message ? memberArgs : await parseMembers(interactionOrMessage)
-
-		if (isNullOrUndefinedOrEmpty(members)) {
-			if (interactionOrMessage instanceof Message) {
-				const channel = interactionOrMessage.channel
-
-				if (!isTextChannel(channel) || isStageChannel(channel)) {
-					return
-				}
-
-				const errorEmbed = new EmbedBuilder()
-					.setColor(0x800000)
-					.setDescription(`${interactionOrMessage.member}, you provided invalid input, please check your input and try again.`)
-
-				channel.send({ embeds: [errorEmbed] })
-			} else {
-				interactionOrMessage.reply({ content: 'You provided invalid input, please check your input and try again.', ephemeral: true })
-			}
-
+	private async muteUserFromMessage(message: Message, memberArgs: GuildMember[], reason?: string) {
+		const members: Promise<GuildMember[]> | GuildMember[] | undefined = memberArgs
+		const channel = message.channel
+		if (!isTextChannel(channel) || isStageChannel(channel)) {
 			return
 		}
 
-		const guild = interactionOrMessage.guild
+		if (isNullOrUndefinedOrEmpty(members)) {
+			const errorEmbed = new EmbedBuilder()
+				.setColor(0x800000)
+				.setDescription(`${message.member}, you provided invalid input, please check your input and try again.`)
+
+			channel.send({ embeds: [errorEmbed] })
+			return
+		}
+
+		const guild = message.guild
 
 		if (!guild) {
 			throw Error('There was no guild object, something isn’t right.')
 		} else {
 			const mutePromises = []
 
-			const muteRole = container
+			const muteRole = this.container.settings.readSettings(guild.id, 'mute_role')
+			if (!muteRole) {
+				// create mute role if it does not exist
+			}
 			for (const member of members) {
 				mutePromises.push(member.roles.add())
 			}
