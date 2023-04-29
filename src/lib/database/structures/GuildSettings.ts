@@ -41,25 +41,36 @@ export class GuildSettings {
 		this.settings.set(key, value)
 		// update db in the bg
 		this.updateDB()
-		return
+		return value
 	}
 
 	// TODO
 	async updateDB() {
-		const settingsJSON = [...this.settings.entries()]
-		console.log(settingsJSON)
-		console.log(this.settings.toJSON())
-		const upsertSettings = await container.db.settings.upsert({
+		const settingsJSON = [...this.settings][0]
+		const jsonString = this.arrayTOJSON(settingsJSON)
+
+		const upsertSettings = container.db.settings.upsert({
 			where: {
 				guild: this.guildID
 			},
 			update: {
-				settings: settingsJSON
+				settings: jsonString
 			},
 			create: {
 				guild: this.guildID,
-				settings: settingsJSON
+				settings: jsonString
 			}
 		})
+	}
+
+	private arrayTOJSON(arr: unknown[]): string {
+		const arrayJSON: { [key: string]: any } = {}
+		for (let i = 0; i < arr.length; i = i + 2) {
+			const key = arr[i] as string
+			const value = arr[i + 1] as any
+			arrayJSON[key] = value
+		}
+
+		return JSON.stringify(arrayJSON)
 	}
 }

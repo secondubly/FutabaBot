@@ -24,9 +24,21 @@ export class SettingsManager {
 		}
 	}
 
-	public readSettings(guildID: string, setting: string) {
+	public readSettings(guildID: string, setting: string): any {
 		if (this.settings.has(guildID)) {
-			const existing = this.settings.get(guildID)!.fetch(setting)
+			const existing = this.settings.get(guildID)?.fetch(setting)
+		} else {
+			// REVIEW: When a new server is added to the bot's list, we need to add it to settings manager
+			return undefined
 		}
+	}
+
+	public updateSetting(guildID: string, setting: string, value: any) {
+		if (!this.settings.has(guildID)) {
+			console.warn("Tried to update settings for a server that hasn't been set up yet!")
+			return undefined
+		}
+
+		return this.settings.get(guildID)?.set(setting, value)
 	}
 }
