@@ -15,12 +15,10 @@ export class SettingsManager {
 			if (!settingsJson) {
 				// create an empty settings map
 				this.settings.set(guildID, new GuildSettings(guildID))
+			} else {
+				const settingsObj = settingsJson.settings as Prisma.JsonObject
+				this.settings.set(guildID, new GuildSettings(guildID, settingsObj))
 			}
-		}
-		for (const setting of guildSettings) {
-			const settingsJson = setting.settings as Prisma.JsonObject
-			console.log(settingsJson)
-			// this.settings.set(setting.guild, new GuildSettings(setting.settings))
 		}
 	}
 

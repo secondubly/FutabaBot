@@ -5,12 +5,13 @@ import { Collection } from 'discord.js'
 export class GuildSettings {
 	settings = new Collection()
 	private guildID: string
-	constructor(guildID: string, settings?: JSON) {
-		// TODO: grab all data from db and store in settings Collection
+	constructor(guildID: string, settings?: Prisma.JsonObject) {
 		this.guildID = guildID
 		if (!settings) {
 			return
 		}
+
+		this.setup(settings)
 	}
 
 	async fetch(setting: string): Promise<any> {
@@ -36,7 +37,7 @@ export class GuildSettings {
 		}
 	}
 
-	set(key: string, value: any) {
+	set(key: string, value: any): any {
 		// cache value
 		this.settings.set(key, value)
 		// update db in the bg
@@ -72,5 +73,13 @@ export class GuildSettings {
 		}
 
 		return JSON.stringify(arrayJSON)
+	}
+
+	private setup(settings: Prisma.JsonObject) {
+		// @ts-ignore: Argument of type <whatever> is not assignable to parameter of type 'string'.
+		const settingsObj = JSON.parse(settings)
+		for (const [key, value] of Object.entries(settingsObj)) {
+			this.settings.set(key, value)
+		}
 	}
 }
