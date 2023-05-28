@@ -10,17 +10,17 @@ services:
             - dev
         environment:
             # prisma studio requires the env variable name be POSTGRES_URL
-            - POSTGRES_URL=${DATABASE_URL}
+            POSTGRES_URL: ${DATABASE_URL}
         ports:
-            - ${PRISMA_STUDIO_PORT}:5555
+            - ${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}
     postgres:
         image: postgres:12.14
         container_name: postgres
         hostname: postgres
         environment:
-            - POSTGRES_USER=${DB_USER}
-            - POSTGRES_PASSWORD=${DB_USER_PASS}
-            - POSTGRESS_DB=${DB_NAME}
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_USER_PASS}
+            POSTGRES_DB: ${DB_NAME}
         ports:
             - ${DB_PORT}:${DB_PORT}
         restart: 'unless-stopped'
@@ -40,5 +40,7 @@ services:
             # Maps our current project directory `.` to
             # our working directory in the container
             - ./:/usr/src/app/
+            - node_modules:/user/src/app/node_modules # exclude this directory
 volumes:
     postgres-data:
+    node_modules:
