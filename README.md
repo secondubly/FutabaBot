@@ -1,4 +1,4 @@
-# TypeScript Sapphire Bot example
+# FutabaBot
 
 A personal use discord bot written by myself. Built on top of the [sapphire framework][sapphire] and written in TypeScript.
 
