@@ -49,6 +49,6 @@
 		"start:docker": "prisma migrate deploy && node dist/FutabaBot.js",
 		"start": "node dist/FutabaBot.js",
 		"watch": "tsc -b src -w",
-		"watch:start": "tsc-watch --onSuccess \"npm run start\""
+		"watch:start": "tsc-watch -b src --onSuccess \"npm run start\""
 	}
 }
