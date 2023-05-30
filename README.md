@@ -28,7 +28,7 @@ You have two options for development with this bot. You may choose to use the Do
 4. Run `docker compose --env-file src/.env.development.local up` in the terminal where the bot is located. (If you want to get access to your DB information in a browser, you can run `docker compose --env-file src/.env.development.local --profile dev up`)
 5. After a bit of time, all the relevant containers should be setup and running!
 
--   If running the dev profile, you can access your Prisma Studio instance via
+-   If running the dev profile, you can access your Prisma Studio instance via `http://localhost:5555` - the login information is in `.env.development.local`
 
 ## Non-Docker
 
@@ -42,6 +42,8 @@ _Note: These steps assume you have an installed and running PostgreSQL server_
 6. You can run the bot now in two ways:
     - If you wish to watch the repository files and automatically restart the bot when any are changed, run `npm run watch:start`
     - If you wish to just run the bot, run `npm run dev`
+
+I have included VS Code files for ease-of-use as well.
 
 ### Production
 
