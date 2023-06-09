@@ -2,8 +2,7 @@ import { ModerationCommand } from '#lib/moderation'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Args, Command } from '@sapphire/framework'
 import { EmbedBuilder, GuildMember } from 'discord.js'
-import { Message } from 'discord.js'
-import { parseMembers } from '#utils/functions'
+import type { Message } from 'discord.js'
 import { isNullOrUndefinedOrEmpty } from '@sapphire/utilities'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
 
@@ -31,11 +30,11 @@ export class UserCommand extends ModerationCommand {
 	}
 
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-		return this.muteUser(interaction)
+		return this.muteUserFromInteraction(interaction)
 	}
 
 	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {
-		return this.muteUser(interaction)
+		return this.muteUserFromInteraction(interaction)
 	}
 
 	private async muteUserFromMessage(message: Message, memberArgs: GuildMember[], reason?: string) {
@@ -66,8 +65,36 @@ export class UserCommand extends ModerationCommand {
 				// create mute role if it does not exist
 			}
 			for (const member of members) {
-				mutePromises.push(member.roles.add())
+				// mutePromises.push(member.roles.add())
 			}
 		}
+	}
+
+	private async muteUserFromInteraction(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction, reason?: string) {
+		// const members: Promise<GuildMember[]> | GuildMember[] | undefined = memberArgs
+		// const channel = interaction.channel
+		// if (!isTextChannel(channel) || isStageChannel(channel)) {
+		// 	return
+		// }
+		// if (isNullOrUndefinedOrEmpty(members)) {
+		// 	const errorEmbed = new EmbedBuilder()
+		// 		.setColor(0x800000)
+		// 		.setDescription(`${interaction.member}, you provided invalid input, please check your input and try again.`)
+		// 	channel.send({ embeds: [errorEmbed] })
+		// 	return
+		// }
+		// const guild = interaction.guild
+		// if (!guild) {
+		// 	throw Error('There was no guild object, something isn’t right.')
+		// } else {
+		// 	const mutePromises = []
+		// 	const muteRole = this.container.settings.readSettings(guild.id, 'mute_role')
+		// 	if (!muteRole) {
+		// 		// create mute role if it does not exist
+		// 	}
+		// 	for (const member of members) {
+		// 		// mutePromises.push(member.roles.add())
+		// 	}
+		// }
 	}
 }

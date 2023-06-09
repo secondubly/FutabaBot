@@ -5,6 +5,13 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Docker: Attach to Node",
+			"type": "node",
+			"request": "attach",
+			"preLaunchTask": "Compose Up",
+			"postDebugTask": "Compose Down"
+		},
+		{
 			"type": "node",
 			"request": "launch",
 			"name": "Debug Typescript",
@@ -30,13 +37,6 @@
 			"console": "internalConsole",
 			"internalConsoleOptions": "openOnSessionStart",
 			"outFiles": ["${workspaceFolder}/**/*.js"]
-		},
-		{
-			"name": "Docker Node.js Launch",
-			"type": "docker",
-			"request": "launch",
-			"preLaunchTask": "docker-run: debug",
-			"platform": "node"
 		}
 	]
 }
