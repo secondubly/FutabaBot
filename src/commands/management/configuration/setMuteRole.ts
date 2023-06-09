@@ -1,13 +1,13 @@
 import { ApplyOptions } from '@sapphire/decorators'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
-import type { Message, MessageContextMenuCommandInteraction, Role } from 'discord.js'
+import { Colors, Guild, Message, MessageContextMenuCommandInteraction, PermissionsBitField, Role } from 'discord.js'
 import { FutabaCommand } from '#lib/structures'
 import type { Args, Command, ContextMenuCommand } from '@sapphire/framework'
 // import { ApplicationCommandType } from 'discord.js'
 
 @ApplyOptions<FutabaCommand.Options>({
 	aliases: ['smr'],
-	description: 'Sets mute role for the server'
+	description: 'Sets up the mute role for the server.'
 })
 export class UserCommand extends FutabaCommand {
 	public override registerApplicationCommands(registry: Command.Registry) {
@@ -15,41 +15,37 @@ export class UserCommand extends FutabaCommand {
 			builder
 				.setName(this.name)
 				.setDescription(this.description)
-				.addRoleOption((option) => option.setName('role').setDescription('Role to set as mute role for server').setRequired(true))
+				.setDMPermission(false)
 		)
 	}
 
 	// Message command
 	public async messageRun(message: Message, args: Args) {
-		const role = await args.pick('role').catch(() => {
-			message.channel.send('Please check your input and try again.')
-			return null
-		})
-
-		if (!role) {
+		const channel = message.channel
+		if (!isTextChannel(channel) || isStageChannel(channel)) {
 			return
 		}
 
-		return this.setMuteRole(role)
+		this.setupMuteRole(channel.guild)
+		// TODO: check if mute role already exists - if so, return a warning
 	}
 
 	// Chat Input (slash) command
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-		const role = interaction.options.getRole('role', true)
-		if (!role) {
-		}
-		// return this.setMuteRole(role)
+		this.setupMuteRole(interaction.guild!)
 	}
 
-	// Context Menu command
-	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {
-		if (interaction.isUserContextMenuCommand()) {
-			return
-		}
+	private async setupMuteRole(guild: Guild) {
+		// REF: see https://discordapi.com/permissions.html#67175424 and https://discordjs.guide/popular-topics/permissions.html#converting-permission-numbers
+		const mutePermissions = new PermissionsBitField(67175424n)
+		const muteRole = await guild.roles.create({
+			name: 'muted',
+			color: Colors.DarkOrange,
+			reason: 'Created by FutabaBot',
+			position: 1,
+			permissions: mutePermissions
+		})
 
-		const messageInteraction = interaction as MessageContextMenuCommandInteraction
-		const role = messageInteraction.targetMessage
+		this.container.settings.updateSetting(guild.id, 'MUTE_ROLE', muteRole.id)
 	}
-
-	private async setMuteRole(muteRole: Role) {}
 }
