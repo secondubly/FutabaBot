@@ -28,12 +28,17 @@ export class GuildSettings {
 			})
 
 			if (!settingResult) {
-				console.warn(`Could not find any result for key: ${setting} in guild ${this.guildID}`)
+				console.warn(`Could not find any settings for guild ${this.guildID}`)
 				return undefined
 			}
 
-			const settingJSON = settingResult as Prisma.JsonValue
-			console.log(settingJSON)
+			const settingJSON = settingResult.settings as Prisma.JsonObject
+			if(settingJSON[setting]) {
+				return settingJSON[setting]
+			}
+			
+			console.warn(`Could not find setting ${setting} in guild settings for guild ${this.guildID}`)
+			return undefined
 		}
 	}
 
@@ -47,10 +52,11 @@ export class GuildSettings {
 
 	// TODO
 	async updateDB() {
-		const settingsJSON = [...this.settings][0]
-		const jsonString = this.arrayTOJSON(settingsJSON)
+		const settingsObject = Object.fromEntries([...this.settings])
+		const jsonString = JSON.stringify(settingsObject)
 
-		const upsertSettings = container.db.settings.upsert({
+		// REF: see https://docs-git-clarify-prisma-promise-behavior-prisma.vercel.app/reference/api-reference/prisma-client-reference#prismapromise-behavior for why we use a .then()
+		container.db.settings.upsert({
 			where: {
 				guild: this.guildID
 			},
@@ -61,7 +67,7 @@ export class GuildSettings {
 				guild: this.guildID,
 				settings: jsonString
 			}
-		})
+		}).then(() => {})
 	}
 
 	private arrayTOJSON(arr: unknown[]): string {

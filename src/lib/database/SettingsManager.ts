@@ -1,6 +1,7 @@
 import { container } from '@sapphire/framework'
 import { GuildSettings } from './structures/GuildSettings'
 import type { Prisma } from '@prisma/client'
+import { stringify } from 'querystring'
 
 export class SettingsManager {
 	settings: Map<string, GuildSettings> = new Map<string, GuildSettings>()
@@ -38,5 +39,13 @@ export class SettingsManager {
 		}
 
 		return this.settings.get(guildID)?.set(setting, value)
+	}
+
+	async hasSetting(guildID: string, setting: string): Promise<boolean> {
+		if(await this.settings.get(guildID)?.fetch(setting)) {
+			return true
+		}
+
+		return false
 	}
 }
