@@ -50,6 +50,33 @@ export class GuildSettings {
 		return value
 	}
 
+	async has(key: string): Promise<boolean> {
+		// check cache
+		if (this.settings.has(key)) {
+			return true
+		} else {
+			console.info(`Could not find cached value for key: ${key}`)
+			const settingResult = await container.db.settings.findFirst({
+				select: { settings: true },
+				where: {
+					guild: this.guildID
+				}
+			})
+
+			if (!settingResult) {
+				console.warn(`Could not find any settings for guild ${this.guildID}`)
+				return false
+			}
+
+			const settingJSON = settingResult.settings as Prisma.JsonObject
+			if(settingJSON[key]) {
+				return true
+			}
+
+			return false
+		}
+	}
+
 	// TODO
 	async updateDB() {
 		const settingsObject = Object.fromEntries([...this.settings])

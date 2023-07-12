@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
-import { ChannelType, Colors, Guild, GuildChannel, Message, PermissionsBitField, TextChannel, VoiceBasedChannel } from 'discord.js'
+import { ChannelType, Colors, Guild, Message, PermissionsBitField, TextChannel, VoiceBasedChannel } from 'discord.js'
 import { FutabaCommand } from '#lib/structures'
 import type { Command } from '@sapphire/framework'
 
