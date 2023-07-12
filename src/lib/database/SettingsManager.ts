@@ -27,7 +27,7 @@ export class SettingsManager {
 		if (this.settings.has(guildID)) {
 			const existing = this.settings.get(guildID)?.fetch(setting)
 		} else {
-			// REVIEW: When a new server is added to the bot's list, we need to add it to settings manager
+			// TODO: When a new server is added to the bot's list, we need to add it to settings manager
 			return undefined
 		}
 	}

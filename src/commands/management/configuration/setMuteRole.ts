@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
-import { Colors, Guild, Message, PermissionsBitField } from 'discord.js'
+import { ChannelType, Colors, Guild, GuildChannel, Message, PermissionsBitField, TextChannel, VoiceBasedChannel } from 'discord.js'
 import { FutabaCommand } from '#lib/structures'
 import type { Command } from '@sapphire/framework'
 
@@ -41,8 +41,10 @@ export class UserCommand extends FutabaCommand {
 	}
 
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction<'cached'>) {
-		const roleExists = await this.container.settings.hasSetting(interaction.guild.id, MUTE_ROLE)
-		if (roleExists) {
+		const muteRole = await this.container.settings.readSettings(interaction.guild.id, MUTE_ROLE)
+		const muteRoleInGuild = await interaction.guild.roles.cache.get(muteRole)
+		// check to make sure that 
+		if (muteRole && muteRoleInGuild) {
 			interaction.reply({content: 'Mute role has already been set up.'})
 			return
 		}
@@ -57,16 +59,29 @@ export class UserCommand extends FutabaCommand {
 	}
 
 	private async setupMuteRole(guild: Guild): Promise<boolean> {
-		// REF: see https://discordapi.com/permissions.html#67175424 and https://discordjs.guide/popular-topics/permissions.html#converting-permission-numbers
-		const mutePermissions = new PermissionsBitField(67175424n)
 		const muteRole = await guild.roles.create({
 			name: 'muted',
 			color: Colors.Orange,
 			reason: 'Created by FutabaBot',
 			position: 1,
-			permissions: mutePermissions
+			permissions: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.ChangeNickname]
 		})
 
+
+		const textChannels = guild.channels.cache.filter(chan => chan.type === ChannelType.GuildText)
+		const voiceChannels = guild.channels.cache.filter(chan => chan.type === ChannelType.GuildVoice || chan.type === ChannelType.GuildStageVoice)
+		for (const channel of textChannels.values()) {
+			(channel as TextChannel).permissionOverwrites.create(muteRole, {
+				SendMessages: false
+			})
+		}
+
+		for (const channel of voiceChannels.values()) {
+			(channel as VoiceBasedChannel).permissionOverwrites.create(muteRole, {
+				Speak: false,
+				Connect: false
+			})
+		}
 		const setValue = this.container.settings.updateSetting(guild.id, MUTE_ROLE, muteRole.id)
 		return setValue === muteRole.id ? true : false
 	}
