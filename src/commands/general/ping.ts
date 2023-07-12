@@ -19,11 +19,6 @@ export class UserCommand extends FutabaCommand {
 		return this.sendPing(interaction)
 	}
 
-	// Context Menu command
-	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {
-		return this.sendPing(interaction)
-	}
-
 	private async sendPing(interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction) {
 		const channel = interactionOrMessage.channel
 		if (!isTextChannel(channel) || isStageChannel(channel)) {
