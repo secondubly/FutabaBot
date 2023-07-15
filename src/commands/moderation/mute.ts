@@ -1,7 +1,7 @@
 import { ModerationCommand } from '#lib/moderation'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Args, Command } from '@sapphire/framework'
-import { EmbedBuilder, GuildMember } from 'discord.js'
+import { ApplicationCommandType, EmbedBuilder, GuildMember } from 'discord.js'
 import type { Message, User } from 'discord.js'
 import { isNullOrUndefinedOrEmpty } from '@sapphire/utilities'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
@@ -21,25 +21,33 @@ export class UserCommand extends ModerationCommand {
 				.addStringOption((option) => option.setName('users').setDescription('The users to mute').setRequired(true))
 				.addStringOption((option) => option.setName('reason').setDescription('Reason to mute the user(s)').setRequired(false))
 		)
+
+		registry.registerContextMenuCommand({
+			name: this.name,
+			type: ApplicationCommandType.User
+		})
 	}
 
 	public async messageRun(message: Message, args: Args) {
 		const members = await args.repeat('member')
 		const reason = args.finished ? 'No reason provided.' : await args.rest('string')
 
-		const mutedUsers = this.muteUserFromMessage(message, members, reason)
+		this.muteUserFromMessage(message, members, reason)
+		return
 	}
 
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
 		const members = await parseMembers(interaction)
-		return this.muteUserFromInteraction(interaction, members)
+		this.muteUserFromInteraction(interaction, members)
+		return
 	}
 
 	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction<'cached'>) {
 		if (!interaction.isUserContextMenuCommand() || !interaction.targetMember) {
 			return
 		}
-		const success = this.muteUserFromInteraction(interaction, [interaction.targetMember])
+		this.muteUserFromInteraction(interaction, [interaction.targetMember])
+		return
 	}
 
 	private async muteUserFromMessage(message: Message, memberArgs: GuildMember[], reason?: string) {
@@ -65,13 +73,42 @@ export class UserCommand extends ModerationCommand {
 		} else {
 			const mutePromises = []
 
-			const muteRole = this.container.settings.readSettings(guild.id, 'mute_role')
+			const muteRole: string | undefined = await this.container.settings.readSettings(guild.id, 'MUTE_ROLE')
 			if (!muteRole) {
-				// create mute role if it does not exist
+				console.warn(`Mute command run in guild ${guild.id} but the mute role has not been set up.`)
+				message.reply({ content: 'Mute role not found, please run the setup command first.' })
+				return
 			}
+
+			// TODO: we should probably loop over this and remove items that are invalid, just to be safe
 			for (const member of members) {
-				// mutePromises.push(member.roles.add())
+				if (member.roles.cache.has(muteRole)) {
+					continue
+				}
+
+				mutePromises.push(member.roles.add(muteRole))
 			}
+
+			const muteResults = await Promise.allSettled(mutePromises).catch((err) => {
+				console.log('Some promises failed to resolve')
+				console.error(err)
+				throw err
+			})
+
+			const fulfilledResponses: (string | GuildMember | User)[] = []
+			muteResults.forEach((result) => {
+				if (result.status === 'fulfilled') {
+					fulfilledResponses.push(result.value)
+				}
+			})
+
+			if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
+				message.reply({ content: `None of the supplied members could be muted.` })
+				return undefined
+			}
+
+			const response = `Successfully muted ${fulfilledResponses.length} out of ${members.length} members.`
+			message.reply({ content: response })
 		}
 	}
 
@@ -94,7 +131,7 @@ export class UserCommand extends ModerationCommand {
 		} else {
 			const mutePromises = []
 			// TODO: set MUTE_ROLE to constant
-			const muteRole = await this.container.settings.readSettings(guild.id, 'MUTE_ROLE')
+			const muteRole: string| undefined = await this.container.settings.readSettings(guild.id, 'MUTE_ROLE')
 			if (!muteRole) {
 				console.warn(`Mute command run in guild ${guild.id} but the mute role has not been set up.`)
 				interaction.reply({ content: 'Mute role not found, please run the setup command first.' })
@@ -102,6 +139,10 @@ export class UserCommand extends ModerationCommand {
 			}
 
 			for (const member of members) {
+				if (member.roles.cache.has(muteRole)) {
+					continue
+				}
+
 				mutePromises.push(member.roles.add(muteRole))
 			}
 
@@ -119,7 +160,7 @@ export class UserCommand extends ModerationCommand {
 			})
 
 			if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
-				interaction.reply({ content: `None of the supplied members could be banned.` })
+				interaction.reply({ content: `None of the supplied members could be muted.` })
 				return undefined
 			}
 
