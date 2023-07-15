@@ -13,7 +13,7 @@ export abstract class ModerationCommand<T = unknown> extends FutabaCommand {
 			...options
 		})
 
-		this.requiredMember = options.requiredMember!
+		this.requiredMember = options.requiredMember ? options.requiredMember : false
 	}
 }
 
