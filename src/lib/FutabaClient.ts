@@ -30,7 +30,7 @@ export class FutabaClient extends SapphireClient {
 		}
 
 		// TODO: set this key to a constant
-		const prefix = container.settings.readSettings(guild.id, 'DEFAULT_PREFIX')
+		const prefix = await container.settings.readSettings(guild.id, 'DEFAULT_PREFIX')
 		if (!prefix) {
 			// set default prefix to cache so we can update the DB later
 			container.settings.updateSetting(guild.id, 'DEFAULT_PREFIX', this.options.defaultPrefix)

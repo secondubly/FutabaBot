@@ -23,9 +23,9 @@ export class UserCommand extends FutabaCommand {
 		if (!isTextChannel(message.channel) || isStageChannel(message.channel)) {
 			return
 		}
-		const newPrefix = await args.pick('string')
+		const newPrefix = await args.pick('string').catch(() => undefined)
 		if (!newPrefix) {
-			const currentPrefix = this.container.client.fetchPrefix(message)
+			const currentPrefix = await this.container.client.fetchPrefix(message)
 
 			if (!currentPrefix) {
 				// TODO: error-handling
