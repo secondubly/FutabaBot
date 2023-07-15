@@ -9,6 +9,14 @@ import type { Command } from '@sapphire/framework'
 	description: 'ping pong'
 })
 export class UserCommand extends FutabaCommand {
+	public override registerApplicationCommands(registry: Command.Registry) {
+		registry.registerChatInputCommand((builder) =>
+			builder
+				.setName(this.name)
+				.setDescription(this.description)
+		)
+	}
+
 	// Message command
 	public async messageRun(message: Message) {
 		return this.sendPing(message)
@@ -19,7 +27,7 @@ export class UserCommand extends FutabaCommand {
 		return this.sendPing(interaction)
 	}
 
-	private async sendPing(interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction) {
+	private async sendPing(interactionOrMessage: Message | Command.ChatInputCommandInteraction) {
 		const channel = interactionOrMessage.channel
 		if (!isTextChannel(channel) || isStageChannel(channel)) {
 			return
