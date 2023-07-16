@@ -4,14 +4,13 @@ import type { Args, Command } from '@sapphire/framework'
 import { isNullOrUndefinedOrEmpty } from '@sapphire/utilities'
 import { isTextChannel, isStageChannel } from '@sapphire/discord.js-utilities'
 import type { GuildMember, User } from 'discord.js'
-import { Message, EmbedBuilder } from 'discord.js'
+import { Message, EmbedBuilder, ApplicationCommandType } from 'discord.js'
 import { parseMembers } from '#utils/functions'
 
 @ApplyOptions<ModerationCommand.Options>({
 	aliases: ['b'],
 	description: 'Ban users with an optional reason',
 	requiredClientPermissions: ['BanMembers'],
-	requiredMember: true,
 	typing: true
 })
 export class UserCommand extends ModerationCommand {
@@ -23,6 +22,18 @@ export class UserCommand extends ModerationCommand {
 				.addStringOption((option) => option.setName('users').setDescription('the users to ban').setRequired(true))
 				.addStringOption((option) => option.setName('reason').setDescription('Reason to ban the user(s)').setRequired(false))
 		)
+
+		// Register Context Menu command available from any message
+		registry.registerContextMenuCommand({
+			name: this.name,
+			type: ApplicationCommandType.Message
+		})
+
+		// Register Context Menu command available from any user
+		registry.registerContextMenuCommand({
+			name: this.name,
+			type: ApplicationCommandType.User
+		})
 	}
 	// Message command
 	public async messageRun(message: Message, args: Args) {

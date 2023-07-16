@@ -8,3 +8,7 @@ export function isModerator(member: GuildMember) {
 export function isGuildOwner(member: GuildMember) {
 	return member.id === member.guild.ownerId
 }
+
+export function isAdmin(member: GuildMember): boolean {
+	return member.permissions.has('Administrator') || member.permissions.has('ManageGuild')
+}

@@ -1,18 +1,46 @@
 import { PermissionLevels } from '#lib/types/Enum'
 import { OWNERS } from '#root/config'
 import { PreconditionContainerArray } from '@sapphire/framework'
-import { ApplicationCommandType } from 'discord.js'
+import { PermissionFlagsBits, 
+	PermissionsBitField, 
+	ChatInputCommandInteraction as ChatInputInteraction,
+	ContextMenuCommandInteraction as CTXMenuCommandInteraction,
+	UserContextMenuCommandInteraction as UserCTXMenuCommandInteraction,
+	MessageContextMenuCommandInteraction as MessageCTXCommandInteraction } from 'discord.js'
 import { Command } from '@sapphire/framework'
 
 export abstract class FutabaCommand extends Command {
-	public readonly permissionLevel: PermissionLevels
-	public readonly description: string
+	/**
+	 * Whether the command can be disabled.
+	 */
+	public readonly guarded?: boolean;
+	/**
+	 * Whether the command is hidden from everyone.
+	 */
+	public readonly hidden?: boolean;
+	/**
+	 * The permission level required to run the command.
+	 */
+	public readonly permissionLevel?: PermissionLevels;
 
 	public constructor(context: Command.Context, options: FutabaCommand.Options) {
-		super(context, { cooldownDelay: 10000, cooldownLimit: 2, cooldownFilteredUsers: OWNERS, ...options })
+		const permissions = new PermissionsBitField(options.requiredClientPermissions).add(
+			PermissionFlagsBits.SendMessages,
+			PermissionFlagsBits.EmbedLinks,
+			PermissionFlagsBits.ViewChannel
+		)
+		super(context, {
+			cooldownDelay: 10000,
+			cooldownLimit: 2,
+			cooldownFilteredUsers: OWNERS,
+			requiredClientPermissions: permissions,
+			generateDashLessAliases: true,
+			...options
+		});
 
-		this.permissionLevel = options.permissionLevel ?? PermissionLevels.Everyone
-		this.description = options.description
+		(this.guarded = options.guarded ?? false),
+		(this.hidden = options.hidden ?? false),
+		(this.permissionLevel = options.permissionLevel ?? PermissionLevels.Everyone)
 	}
 
 	protected parseConstructorPreConditions(options: FutabaCommand.Options) {
@@ -46,35 +74,23 @@ export abstract class FutabaCommand extends Command {
 
 		this.preconditions.append(container)
 	}
-
-	public override registerApplicationCommands(registry: Command.Registry) {
-		// Register Chat Input command
-		registry.registerChatInputCommand({
-			name: this.name,
-			description: this.description
-		})
-
-		// Register Context Menu command available from any message
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.Message
-		})
-
-		// Register Context Menu command available from any user
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.User
-		})
-	}
 }
 
 export namespace FutabaCommand {
 	// Options for FutabaCommands
 	export type Options = Command.Options & {
-		description: string
-		detailedDescription?: string
+		/* permission level required to run the command */
 		permissionLevel?: number
-		requiredMember?: boolean
+		/* Whetehr the command can be disabled */
+		guarded?: boolean
+		/* Whether the command is hidden for everyone */
+		hidden?: boolean
+		/* command preconditions */
 		preconditions?: ['GuildOnly'] // TODO: remove on production-ready
 	}
+
+	export type ChatInputCommandInteraction = ChatInputInteraction<'cached'>
+	export type ContextMenuCommandInteraction = CTXMenuCommandInteraction<'cached'>;
+	export type UserContextMenuCommandInteraction = UserCTXMenuCommandInteraction<'cached'>;
+	export type MessageContextMenuCommandInteraction = MessageCTXCommandInteraction<'cached'>;
 }
