@@ -46,58 +46,6 @@ export class UserCommand extends ModerationCommand {
 		return this.banUserFromInteraction(interaction)
 	}
 
-	private async banUserFromMessage(message: Message, members: GuildMember[]) {
-		const channel = message.channel
-		if (!isTextChannel(channel) || isStageChannel(channel)) {
-			return
-		}
-
-		if (isNullOrUndefinedOrEmpty(members)) {
-			const errorEmbed = new EmbedBuilder()
-				.setColor(0x800000)
-				.setDescription(`${message.member}, You provided invalid input, please check your input and try again.`)
-
-			channel.send({ embeds: [errorEmbed] })
-			return
-		}
-
-		if (!message.guild) {
-			throw Error('There was no guild object, something isn’t right.')
-		}
-
-		const guild = message.guild
-		const banPromises: Promise<string | User | GuildMember>[] = []
-
-		for (const member of members) {
-			banPromises.push(guild.members.ban(member))
-		}
-
-		const banResults = await Promise.allSettled(banPromises).catch((err) => {
-			console.error(err)
-			console.log('some promises failed to resolve')
-			throw err
-		})
-
-		const fulfilledResponses: (string | GuildMember | User)[] = []
-		banResults.forEach((result) => {
-			if (result.status === 'fulfilled') {
-				fulfilledResponses.push(result.value)
-			}
-		})
-
-		if (isNullOrUndefinedOrEmpty(fulfilledResponses)) {
-			const errorEmbed = new EmbedBuilder()
-				.setColor(0x800000) // TODO: set this color as a constant
-				.setDescription(`${message.member}, None of the supplied members could be banned.`)
-			channel.send({ embeds: [errorEmbed] })
-			return
-		}
-
-		const response = `Successfully kicked ${fulfilledResponses.length} out of ${members.length} members.`
-		channel.send(response)
-		return
-	}
-
 	private async banUserFromInteraction(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction) {
 		const members = await parseMembers(interaction)
 
