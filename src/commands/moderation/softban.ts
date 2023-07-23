@@ -12,7 +12,7 @@ import type { FutabaCommand } from '#lib/structures'
 import { runAllChecks } from '#lib/util/discord/discord'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Command } from '@sapphire/framework'
-import type { APIApplicationCommandOptionChoice } from 'discord.js'
+import type { APIApplicationCommandOptionChoice, GuildMember, Message, MessageContextMenuCommandInteraction } from 'discord.js'
 import { ApplicationCommandType } from 'discord.js'
 
 @ApplyOptions<ModerationCommand.Options>({
@@ -88,9 +88,51 @@ export class UserCommand extends ModerationCommand {
 		const daysToDelete = interaction.options.getInteger('days') ?? 1
 		const dm = interaction.options.getBoolean('dm') ?? false
 
-		const { content, result } = runAllChecks(interaction.member, member, 'soft ban')
-		if (!result) {
-			return interaction.editReply(content)
+		return this.softBanUser(interaction, member, daysToDelete, reason, dm)
+	}
+
+	public override async contextMenuRun(interaction: FutabaCommand.ContextMenuCommandInteraction) {
+		await interaction.deferReply({ fetchReply: true })
+		const member = interaction.isContextMenuCommand()
+			? interaction.member
+			: (interaction as MessageContextMenuCommandInteraction<'cached'>).targetMessage.member
+
+		if (!member) {
+			return interaction.editReply({
+				content: `${Emojis.Cross} Please specify a valid member that is in this server.`
+			})
+		}
+
+		const reason = undefined
+		const daysToDelete = 1
+
+		return this.softBanUser(interaction, member, daysToDelete, reason, false)
+	}
+
+	private async softBanUser(
+		interaction: FutabaCommand.ChatInputCommandInteraction | FutabaCommand.ContextMenuCommandInteraction,
+		member: GuildMember,
+		daysToDelete: number,
+		reason: string | undefined,
+		dm: boolean
+	): Promise<Message> {
+		if (interaction.isChatInputCommand()) {
+			const { content, result } = runAllChecks(interaction.member, member, 'soft ban')
+			if (!result) {
+				return interaction.editReply(content)
+			}
+		} else if (interaction.isUserContextMenuCommand()) {
+			const { content, result } = runAllChecks(interaction.targetMember, interaction.member, 'soft ban')
+			if (!result) {
+				return interaction.editReply(content)
+			}
+		} else {
+			const messageInteraction = interaction as MessageContextMenuCommandInteraction<'cached'>
+			const { content, result } = runAllChecks(messageInteraction.member, member, 'soft ban')
+
+			if (!result) {
+				return interaction.editReply(content)
+			}
 		}
 
 		let response = `${Emojis.Confirm} ${member} has been soft banned ${reason ? `for the following reason: ${reason}` : ''}`
