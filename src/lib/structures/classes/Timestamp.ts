@@ -5,7 +5,7 @@ export class Timestamp {
 	 * @requires [UNIX](https://en.wikipedia.org/wiki/Unix_time) timestamp in `milliseconds`
 	 */
 	public constructor(public readonly timestamp: number) {
-		if (this.timestamp < 0) throw new Error('Timestamp must be a positive number');
+		if (this.timestamp < 0) throw new Error('Timestamp must be a positive number')
 	}
 
 	/**
@@ -18,7 +18,7 @@ export class Timestamp {
 	 * @returns {string} The relative time from this timestamp to now
 	 */
 	public getRelativeTime(): string {
-		return `<t:${Math.floor(this.timestamp / 1000)}:R>`;
+		return `<t:${Math.floor(this.timestamp / 1000)}:R>`
 	}
 
 	/**
@@ -31,7 +31,7 @@ export class Timestamp {
 	 * @returns {string} The date and time in the format of `Date Month Year HH:MM`
 	 */
 	public getShortDateTime(): string {
-		return `<t:${Math.floor(this.timestamp / 1000)}:f>`;
+		return `<t:${Math.floor(this.timestamp / 1000)}:f>`
 	}
 
 	/**
@@ -44,7 +44,7 @@ export class Timestamp {
 	 * @returns {string} The date and time in the format of `Day Date Month Year HH:MM`
 	 */
 	public getLongDateTime(): string {
-		return `<t:${Math.floor(this.timestamp / 1000)}:F>`;
+		return `<t:${Math.floor(this.timestamp / 1000)}:F>`
 	}
 
 	/**
@@ -57,7 +57,7 @@ export class Timestamp {
 	 * @returns {string} The date and time in the format of `DD/MM/YYYY`
 	 */
 	public getShortDate(): string {
-		return `<t:${Math.floor(this.timestamp / 1000)}:d>`;
+		return `<t:${Math.floor(this.timestamp / 1000)}:d>`
 	}
 
 	/**
@@ -70,7 +70,7 @@ export class Timestamp {
 	 * @returns {string} The date and time in the format of `Date Month Year`
 	 */
 	public getLongDate(): string {
-		return `<t:${Math.floor(this.timestamp / 1000)}:D>`;
+		return `<t:${Math.floor(this.timestamp / 1000)}:D>`
 	}
 
 	/**
@@ -83,7 +83,7 @@ export class Timestamp {
 	 * @returns {string} The date and time in the format of `HH:MM`
 	 */
 	public getShortTime(): string {
-		return `<t:${Math.floor(this.timestamp / 1000)}:t>`;
+		return `<t:${Math.floor(this.timestamp / 1000)}:t>`
 	}
 
 	/**
@@ -96,6 +96,6 @@ export class Timestamp {
 	 * @returns {string} The date and time in the format of `HH:MM:SS`
 	 */
 	public getLongTime(): string {
-		return `<t:${Math.floor(this.timestamp / 1000)}:T>`;
+		return `<t:${Math.floor(this.timestamp / 1000)}:T>`
 	}
 }

@@ -11,24 +11,11 @@ export abstract class PermissionsPrecondition extends AllFlowsPrecondition {
 		this.guildOnly = options.guildOnly ?? true
 	}
 
-	public async run(message: GuildMessage, command: Command, context: AllFlowsPrecondition.Context): PermissionsPrecondition.AsyncResult {
-		if (message.guild === null || message.member === null) {
-			return this.guildOnly ? this.error({ identifier: Identifiers.PreconditionGuildOnly }) : this.ok()
-		}
-
-		// run the specific precondition's logic
-		return this.handle(message, command, context)
-	}
-
 	public abstract handle(
-		messageOrInteraction: GuildMessage | ChatInputCommandInteraction | ContextMenuCommandInteraction,
+		interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction,
 		command: Command,
 		context: PermissionsPrecondition.Context
 	): PermissionsPrecondition.Result
-
-	public override messageRun(message: Message, command: Command, context: AllFlowsPrecondition.Context) {
-		return this.handle(message as GuildMessage, command, context)
-	}
 
 	public chatInputRun(
 		interaction: ChatInputCommandInteraction,

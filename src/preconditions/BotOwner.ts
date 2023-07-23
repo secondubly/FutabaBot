@@ -1,11 +1,11 @@
-import { AllFlowsPrecondition } from '@sapphire/framework'
+import { AllFlowsPrecondition, PreconditionResult } from '@sapphire/framework'
 import type { Message, CommandInteraction, ContextMenuCommandInteraction } from 'discord.js'
 import { OWNERS } from '#root/config'
 
 export class UserPrecondition extends AllFlowsPrecondition {
 	public override async messageRun(message: Message) {
-		// for Message Commands
-		return this.checkOwner(message.author.id)
+		// no-op, shouldn't ever be executed
+		return this.error({ message: 'This should never happen, something went wrong!' })
 	}
 
 	public override async chatInputRun(interaction: CommandInteraction) {
@@ -18,7 +18,7 @@ export class UserPrecondition extends AllFlowsPrecondition {
 		return this.checkOwner(interaction.user.id)
 	}
 
-	private async checkOwner(userId: string) {
+	private async checkOwner(userId: string): Promise<PreconditionResult> {
 		return OWNERS.includes(userId) ? this.ok() : this.error({ message: 'Only the bot owner can use this command!' })
 	}
 }

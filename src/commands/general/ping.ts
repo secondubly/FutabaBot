@@ -10,16 +10,7 @@ import type { Command } from '@sapphire/framework'
 })
 export class UserCommand extends FutabaCommand {
 	public override registerApplicationCommands(registry: Command.Registry) {
-		registry.registerChatInputCommand((builder) =>
-			builder
-				.setName(this.name)
-				.setDescription(this.description)
-		)
-	}
-
-	// Message command
-	public async messageRun(message: Message) {
-		return this.sendPing(message)
+		registry.registerChatInputCommand((builder) => builder.setName(this.name).setDescription(this.description))
 	}
 
 	// Chat Input (slash) command

@@ -35,11 +35,6 @@ export class UserCommand extends ModerationCommand {
 			type: ApplicationCommandType.User
 		})
 	}
-	// Message command
-	public async messageRun(message: Message, args: Args) {
-		const members = await args.repeat('member')
-		return this.banUserFromMessage(message, members)
-	}
 
 	// Chat Input (slash) command
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
