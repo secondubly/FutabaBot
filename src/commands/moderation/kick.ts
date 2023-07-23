@@ -49,8 +49,7 @@ export class UserCommand extends ModerationCommand {
 
 	private async kickUser(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction, memberArgs?: GuildMember[]) {
 		// if we have an args value, then parse as many members as possible
-		const members: Promise<GuildMember[]> | GuildMember[] | undefined =
-			interaction instanceof Message ? memberArgs : await parseMembers(interaction)
+		const members: Promise<GuildMember[]> | GuildMember[] | undefined = await parseMembers(interaction)
 		if (isNullOrUndefinedOrEmpty(members)) {
 			interaction.reply({ content: 'You provided invalid input, please check your input and try again.', ephemeral: true })
 			return
