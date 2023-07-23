@@ -28,11 +28,9 @@ export class UserCommand extends ModerationCommand {
 				.setDescription(this.description)
 				.addUserOption((option) => option.setName('user').setDescription('Member to timeout').setRequired(true))
 				.addStringOption((option) =>
-					option
-						.setName('duration')
-						.setDescription('The duration of the timeout. Use 0 to remove the timeout. (default: 60 secs)')
-						.setRequired(false)
+					option.setName('duration').setDescription('The duration of the timeout. Use 0 to remove the timeout.').setRequired(true)
 				)
+				.addStringOption((option) => option.setName('reason').setDescription('Reason for timeout').setRequired(false))
 				.addBooleanOption((option) =>
 					option.setName('dm').setDescription('Send a DM to the timed out user (default: false)').setRequired(false)
 				)
