@@ -20,6 +20,7 @@ import { ApplicationCommandType } from 'discord.js'
 	requiredClientPermissions: ['BanMembers']
 })
 export class UserCommand extends ModerationCommand {
+	// TODO: make this a constant probably
 	private readonly daysChoices: APIApplicationCommandOptionChoice<Days>[] = [
 		{ name: '1 Day', value: 1 },
 		{ name: '2 Days', value: 2 },
