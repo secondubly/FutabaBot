@@ -13,19 +13,9 @@ import { Emojis } from '#lib/constants'
 	requiredClientPermissions: ['BanMembers'],
 	typing: true
 })
-export class UserCommand extends ModerationCommand {
-	private DAYS_TO_SECONDS = 86400
-	private readonly rangeChoices: APIApplicationCommandOptionChoice<Range>[] = [
-		// TODO: clean this up
-		{ name: '1 Day', value: 1 },
-		{ name: '2 Days', value: 2 },
-		{ name: '3 Days', value: 3 },
-		{ name: '4 Days', value: 4 },
-		{ name: '5 Days', value: 5 },
-		{ name: '6 Days', value: 6 },
-		{ name: '7 Days', value: 7 }
-	]
 
+// TODO: test this command
+export class UserCommand extends ModerationCommand {
 	public override registerApplicationCommands(registry: Command.Registry) {
 		registry.registerChatInputCommand((builder) =>
 			builder
