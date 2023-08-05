@@ -2,9 +2,8 @@ import { join } from 'path'
 export const rootDir = join(__dirname, '..', '..')
 export const srcDir = join(rootDir, 'src')
 
-
 export const enum Emojis {
-    Cross = '<:redCross:957909502911471636>',
+	Cross = '<:redCross:957909502911471636>',
 	Confirm = '<:greenTick:957909436477878302>',
 	Left = '<:arrow_lilleft:959362275171508234>',
 	Right = '<:arrow_lilright:959363096781148160>',
@@ -18,4 +17,12 @@ export const enum Emojis {
 	ThreadChannel = '<:thread:1027126259328749598>',
 	Member = '<:member:1027127446006419506>',
 	Bot = '<:bot:1027129061430013973>'
+}
+
+export const enum WarnSeverity {
+	One = '1 day',
+	Two = '3 days',
+	Three = '1 week',
+	Four = '2 weeks',
+	Five = '4 weeks'
 }

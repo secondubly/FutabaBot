@@ -18,6 +18,7 @@
 		"@sapphire/duration": "^1.1.0",
 		"@sapphire/framework": "^4.2.1",
 		"@sapphire/plugin-logger": "^3.0.1",
+		"@sapphire/plugin-subcommands": "^4.0.2",
 		"@sapphire/utilities": "^3.11.0",
 		"@skyra/env-utilities": "^1.1.0",
 		"colorette": "^2.0.19",
