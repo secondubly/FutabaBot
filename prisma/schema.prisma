@@ -8,14 +8,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model playing_status {
+model PlayingStatus {
   id            Int    @id @default(autoincrement())
   guild         String
   status_type   String
   status_string String
 }
 
-model playlist_song {
+model PlaylistSong {
   id                Int       @id @default(autoincrement())
   music_playlist_id Int
   provider          String
@@ -31,10 +31,29 @@ model playlists {
   author        String?
   author_id     Int?
   name          String?
-  playlist_song playlist_song[]
+  playlist_song PlaylistSong[]
 }
 
 model settings {
   guild    String @id
   settings Json
+}
+
+model Warn {
+  id            String @id
+  targetId      String
+  guildId       String
+  date          DateTime
+  expiration    DateTime
+  mod           String
+  reason        String
+  severity      Int
+
+  target MemberWarnings @relation(fields: [targetId], references: [id])
+}
+
+model MemberWarnings {
+  id        String @id
+  guildId   String
+  warns     Warn[]
 }
