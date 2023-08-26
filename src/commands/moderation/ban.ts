@@ -40,13 +40,19 @@ export class UserCommand extends ModerationCommand {
 						.setDescription('The time range of user’s message history to delete. (default: 0)')
 						.setRequired(false)
 						.setChoices(...this.rangeChoices)
-				)
+				),
+				{
+					guildIds: [''] // TODO: add env value for this later
+				}
 		)
 
 		// Register Context Menu command available from any user
 		registry.registerContextMenuCommand({
 			name: this.name,
 			type: ApplicationCommandType.User
+		},
+		{
+			guildIds: [''] // TODO: add env value for this later
 		})
 	}
 

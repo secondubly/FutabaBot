@@ -20,13 +20,19 @@ export class UserCommand extends ModerationCommand {
 				.setName(this.name)
 				.setDescription(this.description)
 				.addStringOption((option) => option.setName('user').setDescription('the user to unban').setRequired(true))
-				.addStringOption((option) => option.setName('reason').setDescription('Reason to unban the user').setRequired(false))
+				.addStringOption((option) => option.setName('reason').setDescription('Reason to unban the user').setRequired(false)),
+				{
+					guildIds: [''] // TODO: add env value for this later
+				}
 		)
 
 		// Register Context Menu command available from any message
 		registry.registerContextMenuCommand({
 			name: this.name,
 			type: ApplicationCommandType.Message
+		},
+		{
+			guildIds: [''] // TODO: add env value for this later
 		})
 	}
 

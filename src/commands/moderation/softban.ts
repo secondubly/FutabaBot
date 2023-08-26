@@ -61,7 +61,10 @@ export class UserCommand extends ModerationCommand {
 						.setName('dm')
 						.setDescription('Send a DM to the timed out user (default: false)')
 						.setRequired(false)
-				)
+				),
+				{
+					guildIds: [''] // TODO: add env value for this later
+				}
 		)
 	}
 

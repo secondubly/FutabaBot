@@ -34,12 +34,18 @@ export class UserCommand extends ModerationCommand {
 				.addBooleanOption((option) =>
 					option.setName('dm').setDescription('Send a DM to the timed out user (default: false)').setRequired(false)
 				)
-		)
+		),
+		{
+			guildIds: [''] // TODO: add env value for this later
+		}
 
 		// Register Context Menu command available from any user
 		registry.registerContextMenuCommand({
 			name: this.name,
 			type: ApplicationCommandType.User
+		},
+		{
+			guildIds: [''] // TODO: add env value for this later
 		})
 	}
 

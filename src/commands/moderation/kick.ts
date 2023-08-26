@@ -20,13 +20,19 @@ export class UserCommand extends ModerationCommand {
 				.setName(this.name)
 				.setDescription(this.description)
 				.addStringOption((option) => option.setName('users').setDescription('the users to kick').setRequired(true))
-				.addStringOption((option) => option.setName('reason').setDescription('Reason to kick the user(s)').setRequired(false))
+				.addStringOption((option) => option.setName('reason').setDescription('Reason to kick the user(s)').setRequired(false)),
+				{
+					guildIds: [''] // TODO: add env value for this later
+				}
 		)
 
 		// Register Context Menu command available from any user
 		registry.registerContextMenuCommand({
 			name: this.name,
 			type: ApplicationCommandType.User
+		},
+		{
+			guildIds: [''] // TODO: add env value for this later
 		})
 	}
 
