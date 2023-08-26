@@ -15,6 +15,7 @@ import {
 import { Button } from './Button.js'
 import { Embed } from './Embed.js'
 import { Row } from './Row.js'
+import { isStageChannel, isTextBasedChannel, isTextChannel } from '@sapphire/discord.js-utilities'
 
 export class Confirmation {
 	public options: ConfirmationOptions
@@ -73,8 +74,9 @@ export class Confirmation {
 		this.buttons = this.buttons.length ? this.buttons : [yes_button, no_button]
 
 		row._components(this.buttons)
-		let msg: Message<boolean>
-		if (message instanceof Message) {
+		let msg: Message<boolean>	
+		const isMessage = message instanceof Message
+		if (isMessage && !isStageChannel(message.channel)) {
 			msg = await message.channel.send({
 				content: this.options.content,
 				embeds: this.options?.content ? [] : [embed],
