@@ -35,6 +35,8 @@ export class UserCommand extends ModerationCommand {
 	public override registerApplicationCommands(registry: Command.Registry) {
 		registry.registerChatInputCommand((builder) =>
 			builder
+				.setName(this.name)
+				.setDescription(this.description)
 				.addUserOption((option) =>
 					option //
 						.setName('user')
