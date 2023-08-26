@@ -1,9 +1,8 @@
 import { ApplyOptions } from '@sapphire/decorators'
-import type { Args, Command } from '@sapphire/framework'
-import { ApplicationCommandType, EmbedBuilder, Message } from 'discord.js'
+import type { Command } from '@sapphire/framework'
+import { ApplicationCommandType } from 'discord.js'
 import type { GuildMember, User } from 'discord.js'
 import { isNullOrUndefinedOrEmpty } from '@sapphire/utilities'
-import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
 import { ModerationCommand } from '#lib/moderation'
 import { parseMembers } from '#utils/functions'
 
@@ -23,12 +22,6 @@ export class UserCommand extends ModerationCommand {
 				.addStringOption((option) => option.setName('users').setDescription('the users to kick').setRequired(true))
 				.addStringOption((option) => option.setName('reason').setDescription('Reason to kick the user(s)').setRequired(false))
 		)
-
-		// Register Context Menu command available from any message
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.Message
-		})
 
 		// Register Context Menu command available from any user
 		registry.registerContextMenuCommand({

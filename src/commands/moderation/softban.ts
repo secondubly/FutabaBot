@@ -63,18 +63,6 @@ export class UserCommand extends ModerationCommand {
 						.setRequired(false)
 				)
 		)
-
-		// Register Context Menu command available from any message
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.Message
-		})
-
-		// Register Context Menu command available from any user
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.User
-		})
 	}
 
 	public override async chatInputRun(interaction: FutabaCommand.ChatInputCommandInteraction) {
@@ -92,24 +80,6 @@ export class UserCommand extends ModerationCommand {
 		const dm = interaction.options.getBoolean('dm') ?? false
 
 		return this.softBanUser(interaction, member, daysToDelete, reason, dm)
-	}
-
-	public override async contextMenuRun(interaction: FutabaCommand.ContextMenuCommandInteraction) {
-		await interaction.deferReply({ fetchReply: true })
-		const member = interaction.isContextMenuCommand()
-			? interaction.member
-			: (interaction as MessageContextMenuCommandInteraction<'cached'>).targetMessage.member
-
-		if (!member) {
-			return interaction.editReply({
-				content: `${Emojis.Cross} Please specify a valid member that is in this server.`
-			})
-		}
-
-		const reason = undefined
-		const daysToDelete = 1
-
-		return this.softBanUser(interaction, member, daysToDelete, reason, false)
 	}
 
 	private async softBanUser(

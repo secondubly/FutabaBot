@@ -1,11 +1,9 @@
 import { ModerationCommand } from '#lib/moderation'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Command } from '@sapphire/framework'
-import type { User, APIApplicationCommandOptionChoice, Message, InteractionResponse } from 'discord.js'
+import type { User, InteractionResponse } from 'discord.js'
 import { ApplicationCommandType, MessageContextMenuCommandInteraction } from 'discord.js'
 import type { FutabaCommand } from '#lib/structures'
-import { runAllChecks } from '#lib/util/discord/discord'
-import { Confirmation } from '#lib/structures'
 import { Emojis } from '#lib/constants'
 
 @ApplyOptions<ModerationCommand.Options>({
@@ -29,12 +27,6 @@ export class UserCommand extends ModerationCommand {
 		registry.registerContextMenuCommand({
 			name: this.name,
 			type: ApplicationCommandType.Message
-		})
-
-		// Register Context Menu command available from any user
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.User
 		})
 	}
 

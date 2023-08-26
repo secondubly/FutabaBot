@@ -43,12 +43,6 @@ export class UserCommand extends ModerationCommand {
 				)
 		)
 
-		// Register Context Menu command available from any message
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.Message
-		})
-
 		// Register Context Menu command available from any user
 		registry.registerContextMenuCommand({
 			name: this.name,
