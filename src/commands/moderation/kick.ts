@@ -48,7 +48,7 @@ export class UserCommand extends ModerationCommand {
 		return this.kickUser(interaction)
 	}
 
-	private async kickUser(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction, memberArgs?: GuildMember[]) {
+	private async kickUser(interaction: Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction) {
 		// if we have an args value, then parse as many members as possible
 		const members: Promise<GuildMember[]> | GuildMember[] | undefined = await parseMembers(interaction)
 		if (isNullOrUndefinedOrEmpty(members)) {

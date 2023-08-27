@@ -14,7 +14,7 @@ export class GuildSettings {
 		this.setup(settings)
 	}
 
-	async fetch(setting: string): Promise<any> {
+	async fetch(setting: string): Promise<unknown> {
 		if (this.settings.has(setting)) {
 			return this.settings.get(setting)
 		} else {
@@ -42,7 +42,7 @@ export class GuildSettings {
 		}
 	}
 
-	set(key: string, value: any): any {
+	set(key: string, value: unknown): unknown {
 		// cache value
 		this.settings.set(key, value)
 		// update db in the bg
@@ -94,14 +94,14 @@ export class GuildSettings {
 				guild: this.guildID,
 				settings: jsonString
 			}
-		}).then(() => {})
+		}).then(() => { /* no-op */ })
 	}
 
 	private arrayTOJSON(arr: unknown[]): string {
-		const arrayJSON: { [key: string]: any } = {}
+		const arrayJSON: { [key: string]: unknown } = {}
 		for (let i = 0; i < arr.length; i = i + 2) {
 			const key = arr[i] as string
-			const value = arr[i + 1] as any
+			const value = arr[i + 1] as unknown
 			arrayJSON[key] = value
 		}
 
@@ -109,7 +109,6 @@ export class GuildSettings {
 	}
 
 	private setup(settings: Prisma.JsonObject) {
-		// @ts-ignore: Argument of type <whatever> is not assignable to parameter of type 'string'.
 		const settingsObj = JSON.parse(settings)
 		for (const [key, value] of Object.entries(settingsObj)) {
 			this.settings.set(key, value)

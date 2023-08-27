@@ -4,7 +4,7 @@ import type { Message, CommandInteraction, ContextMenuCommandInteraction } from 
 import { OWNERS } from '#root/config'
 
 export class UserPrecondition extends AllFlowsPrecondition {
-	public override async messageRun(message: Message) {
+	public override async messageRun() {
 		// no-op, shouldn't ever be executed
 		return this.error({ message: 'This should never happen, something went wrong!' })
 	}

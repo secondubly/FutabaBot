@@ -45,6 +45,7 @@ ${line03}${dev ? ` ${pad}${blc('<')}${llc('/')}${blc('>')} ${llc('DEVELOPMENT MO
 		logger.info(this.styleStore(last, true))
 	}
 
+	// eslint-disable-next-line  @typescript-eslint/no-explicit-any
 	private styleStore(store: Store<any>, last: boolean) {
 		return gray(`${last ? '└─' : '├─'} Loaded ${this.style(store.size.toString().padEnd(3, ' '))} ${store.name}.`)
 	}

@@ -2,7 +2,6 @@ import { ModerationCommand } from '#lib/moderation'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Command } from '@sapphire/framework'
 import type { User, InteractionResponse } from 'discord.js'
-import { ApplicationCommandType, MessageContextMenuCommandInteraction } from 'discord.js'
 import type { FutabaCommand } from '#lib/structures'
 import { Emojis } from '#lib/constants'
 
@@ -57,4 +56,4 @@ export class UserCommand extends ModerationCommand {
 	}
 }
 
-type Range = 1 | 2 | 3 | 4 | 5 | 6 | 7
+// type Range = 1 | 2 | 3 | 4 | 5 | 6 | 7

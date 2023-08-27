@@ -15,7 +15,7 @@ import {
 import { Button } from './Button.js'
 import { Embed } from './Embed.js'
 import { Row } from './Row.js'
-import { isStageChannel, isTextBasedChannel, isTextChannel } from '@sapphire/discord.js-utilities'
+import { isStageChannel } from '@sapphire/discord.js-utilities'
 
 export class Confirmation {
 	public options: ConfirmationOptions

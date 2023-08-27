@@ -22,20 +22,19 @@ export class SettingsManager {
 		}
 	}
 
-	async readSettings(guildID: string, setting: string): Promise<any> {
+	async readSettings(guildID: string, setting: string): Promise<unknown> {
 		if (this.settings.has(guildID)) {
 			// check the cache first
-			let settingResult = await this.settings.get(guildID)?.fetch(setting)
+			const settingResult = await this.settings.get(guildID)?.fetch(setting)
 			if (settingResult) {
 				return settingResult
 			}
-		} else {
-			// TODO: When a new server is added to the bot's list, we need to add it to settings manager
-			return undefined
 		}
+		
+		return undefined // TODO: When a new server is added to the bot's list, we need to add it to settings manager
 	}
 
-	updateSetting(guildID: string, setting: string, value: any) {
+	updateSetting(guildID: string, setting: string, value: unknown) {
 		if (!this.settings.has(guildID)) {
 			console.warn("Tried to update settings for a server that hasn't been set up yet!")
 			return undefined
@@ -45,10 +44,10 @@ export class SettingsManager {
 	}
 
 	async hasSetting(guildID: string, setting: string): Promise<boolean> {
-		if (!this.settings.has(guildID)) {
-			return false
+		if (this.settings.has(guildID)) {
+			return await this.settings.get(guildID)?.has(setting) ?? false
 		}
 
-		return await this.settings.get(guildID)!.has(setting)
+		return false
 	}
 }

@@ -13,7 +13,6 @@ import { runAllChecks } from '#lib/util/discord/discord'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Command } from '@sapphire/framework'
 import type { APIApplicationCommandOptionChoice, GuildMember, Message, MessageContextMenuCommandInteraction } from 'discord.js'
-import { ApplicationCommandType } from 'discord.js'
 
 @ApplyOptions<ModerationCommand.Options>({
 	description: 'Quickly bans and unbans a user. Acts as a message purge.',
