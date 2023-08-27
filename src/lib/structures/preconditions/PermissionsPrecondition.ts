@@ -1,8 +1,7 @@
-import { AllFlowsPrecondition, PreconditionResult, PieceContext, AsyncPreconditionResult } from '@sapphire/framework'
-import type { ChatInputCommandInteraction, ContextMenuCommandInteraction, Message } from 'discord.js'
-import { Identifiers } from '@sapphire/framework'
+import { AllFlowsPrecondition } from '@sapphire/framework'
+import type { AsyncPreconditionResult, PieceContext, PreconditionResult } from '@sapphire/framework'
+import type { ChatInputCommandInteraction, ContextMenuCommandInteraction } from 'discord.js'
 import type { Command } from '@sapphire/framework'
-import type { GuildMessage } from '#lib/types'
 export abstract class PermissionsPrecondition extends AllFlowsPrecondition {
 	private readonly guildOnly: boolean
 

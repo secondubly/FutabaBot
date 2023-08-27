@@ -1,4 +1,5 @@
-import { AllFlowsPrecondition, PreconditionResult } from '@sapphire/framework'
+import { AllFlowsPrecondition } from '@sapphire/framework'
+import type { PreconditionResult } from '@sapphire/framework'
 import type { Message, CommandInteraction, ContextMenuCommandInteraction } from 'discord.js'
 import { OWNERS } from '#root/config'
 

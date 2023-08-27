@@ -1,1 +1,1 @@
-export { GuildMessage, DMMessage } from './Discord'
+export type { GuildMessage, DMMessage } from './Discord'
