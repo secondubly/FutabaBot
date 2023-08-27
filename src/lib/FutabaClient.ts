@@ -1,5 +1,5 @@
 import { Enumerable } from '@sapphire/decorators'
-import { Command, SapphireClient, container } from '@sapphire/framework'
+import { ApplicationCommandRegistries, Command, RegisterBehavior, SapphireClient, container } from '@sapphire/framework'
 import { CLIENT_OPTIONS } from '#root/config'
 import type { Message } from 'discord.js'
 
@@ -12,6 +12,7 @@ export class FutabaClient extends SapphireClient {
 	}
 
 	public async login(token?: string) {
+		ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite)
 		const loginResponse = await super.login(token)
 		return loginResponse
 	}
