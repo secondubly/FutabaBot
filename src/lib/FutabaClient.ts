@@ -1,5 +1,5 @@
 import { Enumerable } from '@sapphire/decorators'
-import { ApplicationCommandRegistries, Command, RegisterBehavior, SapphireClient, container } from '@sapphire/framework'
+import { ApplicationCommandRegistries, Command, RegisterBehavior, SapphireClient, container, type SapphirePrefix, type SapphirePrefixHook } from '@sapphire/framework'
 import { CLIENT_OPTIONS } from '#root/config'
 import type { Message } from 'discord.js'
 
@@ -27,11 +27,11 @@ export class FutabaClient extends SapphireClient {
 
 		if (!guild) {
 			console.warn('fetchPrefix called from a non-server context')
-			return
+			return null
 		}
 
 		// TODO: set this key to a constant
-		const prefix = await container.settings.readSettings(guild.id, 'DEFAULT_PREFIX')
+		const prefix = await container.settings.readSettings(guild.id, 'DEFAULT_PREFIX') as string | undefined
 		if (!prefix) {
 			// set default prefix to cache so we can update the DB later
 			container.settings.updateSetting(guild.id, 'DEFAULT_PREFIX', this.options.defaultPrefix)
