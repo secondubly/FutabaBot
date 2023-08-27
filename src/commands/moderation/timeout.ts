@@ -36,7 +36,8 @@ export class UserCommand extends ModerationCommand {
 				)
 		),
 		{
-			guildIds: [''] // TODO: add env value for this later
+			idHints: ['1145143251028942988'],
+			guildIds: ['703326411326226463'] // TODO: add env value for this later
 		}
 
 		// Register Context Menu command available from any user
@@ -45,7 +46,8 @@ export class UserCommand extends ModerationCommand {
 			type: ApplicationCommandType.User
 		},
 		{
-			guildIds: [''] // TODO: add env value for this later
+			idHints: ['1145143251993645161'],
+			guildIds: ['703326411326226463'] // TODO: add env value for this later
 		})
 	}
 

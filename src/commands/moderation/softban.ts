@@ -63,7 +63,8 @@ export class UserCommand extends ModerationCommand {
 						.setRequired(false)
 				),
 				{
-					guildIds: [''] // TODO: add env value for this later
+					idHints: ['1145143251993645162'],
+					guildIds: ['703326411326226463'] // TODO: add env value for this later
 				}
 		)
 	}

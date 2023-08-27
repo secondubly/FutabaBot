@@ -22,7 +22,8 @@ export class UserCommand extends ModerationCommand {
 				.addStringOption((option) => option.setName('users').setDescription('the users to kick').setRequired(true))
 				.addStringOption((option) => option.setName('reason').setDescription('Reason to kick the user(s)').setRequired(false)),
 				{
-					guildIds: [''] // TODO: add env value for this later
+					idHints: ['1145143251993645158'],
+					guildIds: ['703326411326226463'] // TODO: add env value for this later
 				}
 		)
 
@@ -32,7 +33,8 @@ export class UserCommand extends ModerationCommand {
 			type: ApplicationCommandType.User
 		},
 		{
-			guildIds: [''] // TODO: add env value for this later
+			idHints: ['1145143251993645158'],
+			guildIds: ['703326411326226463'] // TODO: add env value for this later
 		})
 	}
 

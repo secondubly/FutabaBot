@@ -10,7 +10,11 @@ import type { Command } from '@sapphire/framework'
 })
 export class UserCommand extends FutabaCommand {
 	public override registerApplicationCommands(registry: Command.Registry) {
-		registry.registerChatInputCommand((builder) => builder.setName(this.name).setDescription(this.description), { guildIds: [''] })
+		registry.registerChatInputCommand((builder) => builder.setName(this.name).setDescription(this.description), 
+		{ 
+			idHints: ['1145143251993645163'],
+			guildIds: ['703326411326226463'] 
+		})
 	}
 
 	// Chat Input (slash) command

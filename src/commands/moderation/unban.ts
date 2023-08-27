@@ -22,34 +22,16 @@ export class UserCommand extends ModerationCommand {
 				.addStringOption((option) => option.setName('user').setDescription('the user to unban').setRequired(true))
 				.addStringOption((option) => option.setName('reason').setDescription('Reason to unban the user').setRequired(false)),
 				{
-					guildIds: [''] // TODO: add env value for this later
+					idHints: ['1145143251993645156'],
+					guildIds: ['703326411326226463'] // TODO: add env value for this later
 				}
 		)
-
-		// Register Context Menu command available from any message
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.Message
-		},
-		{
-			guildIds: [''] // TODO: add env value for this later
-		})
 	}
 
 	// Chat Input (slash) command
 	public async chatInputRun(interaction: FutabaCommand.ChatInputCommandInteraction) {
 		const user = interaction.options.getUser('user', true)
 		const reason = interaction.options.getString('reason') ?? undefined
-
-		return this.unbanUser(interaction, user, reason)
-	}
-
-	// Context Menu command
-	public async contextMenuRun(interaction: FutabaCommand.ContextMenuCommandInteraction) {
-		const user = interaction.isContextMenuCommand()
-			? interaction.user
-			: (interaction as MessageContextMenuCommandInteraction<'cached'>).targetMessage.author
-		const reason = undefined
 
 		return this.unbanUser(interaction, user, reason)
 	}
