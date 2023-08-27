@@ -1,11 +1,11 @@
-version: '3.9'
 services:
     prisma-studio:
         container_name: prisma-studio
         image: timothyjmiller/prisma-studio:latest
         restart: unless-stopped
         depends_on:
-            - postgres
+            postgres:
+                condition: service_healthy
         profiles:
             - dev
         environment:
@@ -26,16 +26,22 @@ services:
         restart: 'unless-stopped'
         volumes:
             - 'postgres-data:/var/lib/postgresql/data'
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
     futababot:
         build: .
         container_name: futababot-container
         # Our app does not work without our database
         # so this ensures our database is loaded first
         depends_on:
-            - postgres
+            postgres:
+                condition: service_healthy
         tty: true
         env_file:
-            - src/.env.development.local
+            - src/.env.development
         volumes:
             # Maps our current project directory `.` to
             # our working directory in the container
