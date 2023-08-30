@@ -1,4 +1,4 @@
-import './lib/setup'
+import '#lib/setup'
 import { FutabaClient } from '#lib/FutabaClient'
 import { container } from '@sapphire/framework'
 import { PrismaClient } from '@prisma/client'
