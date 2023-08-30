@@ -153,3 +153,4 @@ config.ts
 
 # Ignore npm lockfiles file
 package-lock.json
+src/.env.development
