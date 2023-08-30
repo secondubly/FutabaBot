@@ -1,4 +1,4 @@
-FROM node:16-buster-slim
+FROM node:18-buster-slim
 
 # Prisma requires libssl-dev and ca-certificates as dependencies, so we install them here
 RUN apt-get update && apt-get install libssl-dev ca-certificates -y
@@ -13,8 +13,8 @@ COPY package*.json .
 # This should be explicitly set to production on release
 ENV NODE_ENV="development"
 
-# Install packages
-RUN npm ci
+# Copy src files
+COPY src/ src/
 
 # Copy base tsconfig file
 COPY tsconfig.base.json tsconfig.base.json
@@ -22,8 +22,8 @@ COPY tsconfig.base.json tsconfig.base.json
 # Copy our generated prisma files
 COPY prisma ./prisma
 
-# Copy src files
-COPY src/ src/
+# Install packages
+RUN npm ci
 
 # Generate prisma client
 RUN npx prisma generate
