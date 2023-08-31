@@ -7,9 +7,10 @@ Modified: !date!
 */
 
 import { Emojis } from '#lib/constants'
-import { ModerationCommand } from '#lib/moderation'
-import type { FutabaCommand } from '#lib/structures'
+import { ModerationCommand } from '#lib/moderation/structures/ModerationCommand'
+import type { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
 import { runAllChecks } from '#lib/util/discord/discord'
+import { getGuildIds } from '#lib/util/utils'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Command } from '@sapphire/framework'
 import type { APIApplicationCommandOptionChoice, GuildMember, Message, MessageContextMenuCommandInteraction } from 'discord.js'
@@ -61,10 +62,7 @@ export class UserCommand extends ModerationCommand {
 						.setDescription('Send a DM to the timed out user (default: false)')
 						.setRequired(false)
 				),
-				{
-					idHints: ['1145143251993645162'],
-					guildIds: ['703326411326226463'] // TODO: add env value for this later
-				}
+				{ guildIds: getGuildIds() }
 		)
 	}
 

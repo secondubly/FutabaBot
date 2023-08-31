@@ -3,8 +3,9 @@ import type { Command } from '@sapphire/framework'
 import { ApplicationCommandType } from 'discord.js'
 import type { GuildMember, User } from 'discord.js'
 import { isNullOrUndefinedOrEmpty } from '@sapphire/utilities'
-import { ModerationCommand } from '#lib/moderation'
-import { parseMembers } from '#utils/functions'
+import { ModerationCommand } from '#lib/moderation/structures/ModerationCommand'
+import { parseMembers } from '#utils/functions/members'
+import { getGuildIds } from '#utils/utils'
 
 @ApplyOptions<ModerationCommand.Options>({
 	description: 'Kicks a user from the sever with an optional reason',
@@ -21,10 +22,7 @@ export class UserCommand extends ModerationCommand {
 				.setDescription(this.description)
 				.addStringOption((option) => option.setName('users').setDescription('the users to kick').setRequired(true))
 				.addStringOption((option) => option.setName('reason').setDescription('Reason to kick the user(s)').setRequired(false)),
-				{
-					idHints: ['1145143251993645158'],
-					guildIds: ['703326411326226463'] // TODO: add env value for this later
-				}
+				{ guildIds: getGuildIds() }
 		)
 
 		// Register Context Menu command available from any user
@@ -32,10 +30,7 @@ export class UserCommand extends ModerationCommand {
 			name: this.name,
 			type: ApplicationCommandType.User
 		},
-		{
-			idHints: ['1145143251993645158'],
-			guildIds: ['703326411326226463'] // TODO: add env value for this later
-		})
+		{ guildIds: getGuildIds() })
 	}
 
 	// Chat Input (slash) command

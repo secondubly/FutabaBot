@@ -6,14 +6,15 @@ Created:  2023-07-16T14:11:34.307Z
 Modified: !date!
 */
 
-import { ModerationCommand } from '#lib/moderation'
-import type { FutabaCommand } from '#lib/structures'
+import { ModerationCommand } from '#lib/moderation/structures/ModerationCommand'
+import type { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Command } from '@sapphire/framework'
 import { ApplicationCommandType } from 'discord.js'
 import { Emojis } from '#lib/constants'
 import { runAllChecks } from '#lib/util/discord/discord'
 import { Duration, DurationFormatter } from '@sapphire/duration'
+import { getGuildIds } from '#lib/util/utils'
 
 @ApplyOptions<ModerationCommand.Options>({
 	description: 'Send a user into timeout for misbehaving with optional duration.',
@@ -35,21 +36,15 @@ export class UserCommand extends ModerationCommand {
 					option.setName('dm').setDescription('Send a DM to the timed out user (default: false)').setRequired(false)
 				)
 		),
-		{
-			idHints: ['1145143251028942988'],
-			guildIds: ['703326411326226463'] // TODO: add env value for this later
-		}
+		{ guildIds: getGuildIds() }
 
 		// Register Context Menu command available from any user
 		registry.registerContextMenuCommand({
 			name: this.name,
 			type: ApplicationCommandType.User
 		},
-		{
-			idHints: ['1145143251993645161'],
-			guildIds: ['703326411326226463'] // TODO: add env value for this later
-		})
-	}
+		{ guildIds: getGuildIds() }
+	)}
 
 	public override async chatInputRun(interaction: FutabaCommand.ChatInputCommandInteraction) {
 		await interaction.deferReply({ fetchReply: true })

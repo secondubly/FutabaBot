@@ -1,9 +1,10 @@
-import { ModerationCommand } from '#lib/moderation'
+import { ModerationCommand } from '#lib/moderation/structures/ModerationCommand'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Command } from '@sapphire/framework'
 import type { User, InteractionResponse } from 'discord.js'
-import type { FutabaCommand } from '#lib/structures'
+import type { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
 import { Emojis } from '#lib/constants'
+import { getGuildIds } from '#lib/util/utils'
 
 @ApplyOptions<ModerationCommand.Options>({
 	description: 'Unbans users with an optional reason',
@@ -20,10 +21,7 @@ export class UserCommand extends ModerationCommand {
 				.setDescription(this.description)
 				.addStringOption((option) => option.setName('user').setDescription('the user to unban').setRequired(true))
 				.addStringOption((option) => option.setName('reason').setDescription('Reason to unban the user').setRequired(false)),
-				{
-					idHints: ['1145143251993645156'],
-					guildIds: ['703326411326226463'] // TODO: add env value for this later
-				}
+				{ guildIds: getGuildIds() }
 		)
 	}
 

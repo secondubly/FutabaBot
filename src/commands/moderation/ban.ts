@@ -1,12 +1,13 @@
-import { ModerationCommand } from '#lib/moderation'
+import { ModerationCommand } from '#lib/moderation/structures/ModerationCommand'
 import { ApplyOptions } from '@sapphire/decorators'
 import type { Command } from '@sapphire/framework'
 import type { User, APIApplicationCommandOptionChoice, Message } from 'discord.js'
 import { ApplicationCommandType, MessageContextMenuCommandInteraction } from 'discord.js'
-import type { FutabaCommand } from '#lib/structures'
+import type { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
 import { runAllChecks } from '#lib/util/discord/discord'
-import { Confirmation } from '#lib/structures'
+import { Confirmation } from '#lib/structures/classes/Confirmation'
 import { Emojis } from '#lib/constants'
+import { getGuildIds } from '#lib/util/utils'
 
 @ApplyOptions<ModerationCommand.Options>({
 	aliases: ['b'],
@@ -41,21 +42,15 @@ export class UserCommand extends ModerationCommand {
 						.setRequired(false)
 						.setChoices(...this.rangeChoices)
 				),
-				{
-					idHints: ['1145143251993645159'],
-					guildIds: ['703326411326226463'] // TODO: add env value for this later
-				}
-		)
+				{ guildIds: getGuildIds() }
+			)
 
 		// Register Context Menu command available from any user
 		registry.registerContextMenuCommand({
 			name: this.name,
 			type: ApplicationCommandType.User
 		},
-		{
-			idHints: ['1145143251993645160'],
-			guildIds: ['703326411326226463'] // TODO: add env value for this later
-		})
+		{ guildIds: getGuildIds() })
 	}
 
 	// Chat Input (slash) command
