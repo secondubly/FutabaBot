@@ -1,4 +1,4 @@
-import { PermissionsPrecondition } from '#lib/structures'
+import { PermissionsPrecondition } from '#lib/structures/preconditions/PermissionsPrecondition'
 import { ApplyOptions } from '@sapphire/decorators'
 
 @ApplyOptions<PermissionsPrecondition.Options>({ guildOnly: false })

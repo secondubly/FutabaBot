@@ -6,10 +6,8 @@
 	"license": "MIT",
 	"imports": {
 		"#lib/*": "./dist/lib/*.js",
-		"#lib/moderation": "./dist/lib/moderation/index.js",
-		"#lib/structures": "./dist/lib/structures/index.js",
 		"#root/*": "./dist/*.js",
-		"#utils/*": "./dist/lib/util/functions/index.js"
+		"#utils/*": "./dist/lib/util/*.js"
 	},
 	"dependencies": {
 		"@prisma/client": "^4.16.2",
@@ -20,7 +18,7 @@
 		"@sapphire/plugin-logger": "^3.0.1",
 		"@sapphire/plugin-subcommands": "^4.0.2",
 		"@sapphire/utilities": "^3.11.0",
-		"@skyra/env-utilities": "^1.1.0",
+		"@skyra/env-utilities": "^1.2.1",
 		"colorette": "^2.0.19",
 		"discord.js": "^14.7.1",
 		"dotenv-cli": "^7.1.0",

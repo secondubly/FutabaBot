@@ -1,6 +1,6 @@
 import { GuildMember, User } from "discord.js"
 import { Emojis } from "#lib/constants"
-import { isAdmin } from "../functions";
+import { isAdmin } from "../functions/permissions";
 
 /**
  * Check to see if the action is able to be performed on the specified user

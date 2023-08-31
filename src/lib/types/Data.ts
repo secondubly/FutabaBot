@@ -1,4 +1,4 @@
-import type { Timestamp } from "#lib/structures"
+import type { Timestamp } from "#lib/structures/classes/Timestamp"
 import type { GuildMember, User } from "discord.js"
 
 export interface BaseModActionData {

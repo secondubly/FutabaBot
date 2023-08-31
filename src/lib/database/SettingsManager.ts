@@ -50,4 +50,9 @@ export class SettingsManager {
 
 		return false
 	}
+
+	createDefaultSettings(guildID: string) {
+		// create empty settings map
+		this.settings.set(guildID, new GuildSettings(guildID))
+	}
 }

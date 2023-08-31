@@ -1,4 +1,4 @@
-import { FutabaCommand } from '#lib/structures'
+import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
 import { PermissionLevels } from '#lib/types/Enum'
 import type { PieceContext } from '@sapphire/framework'
 

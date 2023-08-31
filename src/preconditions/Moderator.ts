@@ -1,5 +1,5 @@
-import { PermissionsPrecondition } from '#lib/structures'
-import { isModerator } from '#utils/functions'
+import { PermissionsPrecondition } from '#lib/structures/preconditions/PermissionsPrecondition'
+import { isModerator } from '#utils/functions/permissions'
 import type { GuildMember, Message } from 'discord.js'
 import type { CommandInteraction, ContextMenuCommandInteraction } from 'discord.js'
 
