@@ -42,11 +42,5 @@ services:
         tty: true
         env_file:
             - src/.env.development
-        volumes:
-            # Maps our current project directory `.` to
-            # our working directory in the container
-            - ./:/usr/src/app/
-            - node_modules:/user/src/app/node_modules # exclude this directory
 volumes:
     postgres-data:
-    node_modules:
