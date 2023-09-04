@@ -33,7 +33,7 @@ export class UserCommand extends ModerationCommand {
 			builder
 				.setName(this.name)
 				.setDescription(this.description)
-				.addStringOption((option) => option.setName('user').setDescription('the user to ban').setRequired(true))
+				.addUserOption((option) => option.setName('user').setDescription('the user to ban').setRequired(true))
 				.addStringOption((option) => option.setName('reason').setDescription('Reason to ban the user(s)').setRequired(false))
 				.addIntegerOption((option) =>
 					option
