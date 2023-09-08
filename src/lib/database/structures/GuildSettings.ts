@@ -4,12 +4,14 @@ import { Collection } from 'discord.js'
 
 export class GuildSettings {
 	settings = new Collection()
+
 	private guildID: string
-	constructor(guildID: string, settings?: Prisma.JsonObject) {
+	constructor(guildID: string, settings?: Prisma.JsonObject, warns?: Prisma.JsonObject) {
 		this.guildID = guildID
 		if (!settings) {
 			return
 		}
+
 
 		this.setup(settings)
 	}
@@ -18,7 +20,7 @@ export class GuildSettings {
 		if (this.settings.has(setting)) {
 			return this.settings.get(setting)
 		} else {
-			console.info(`Could not find cached value for key: ${setting}`)
+			console.debug(`Could not find cached value for key: ${setting}`)
 			// check DB
 			const settingResult = await container.db.settings.findFirst({
 				select: { settings: true },
