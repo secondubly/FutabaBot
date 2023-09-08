@@ -46,9 +46,9 @@ model Warn {
   date          DateTime
   expiration    DateTime
   mod           String
-  reason        String
+  reason        String?
   severity      Int
-  warnId        GuildWarns      @relation("Warns", fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  guild         GuildWarns      @relation("Warns", fields: [guildId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model WarnAction {
