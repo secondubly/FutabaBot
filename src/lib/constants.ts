@@ -16,7 +16,8 @@ export const enum Emojis {
 	VoiceChannel = '<:vc:1027126195067826196>',
 	ThreadChannel = '<:thread:1027126259328749598>',
 	Member = '<:member:1027127446006419506>',
-	Bot = '<:bot:1027129061430013973>'
+	Bot = '<:bot:1027129061430013973>',
+	SweatSmile = ':sweat_smile:'
 }
 
 export const enum WarnSeverity {
@@ -25,4 +26,9 @@ export const enum WarnSeverity {
 	Three = '1 week',
 	Four = '2 weeks',
 	Five = '4 weeks'
+}
+
+export const enum Color {
+	Core = 0xffa500,
+	Moderation = 0x228b22
 }
