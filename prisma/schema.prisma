@@ -48,16 +48,17 @@ model Warn {
   mod           String
   reason        String?
   severity      Int
+  status        String          @db.VarChar(1)        @default("a")
   guild         GuildWarns      @relation("Warns", fields: [guildId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model WarnAction {
-  id          String            @id
-  action      String
-  severity    Int
-  expiration  Int?
-  guildId     String
-  warnActionId    GuildWarns    @relation("WarnActions", fields: [action], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id              String            @id
+  action          String
+  severity        Int
+  expiration      Int?
+  guildId         String
+  warnActionId    GuildWarns    @relation("WarnActions", fields: [guildId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model GuildWarns {
