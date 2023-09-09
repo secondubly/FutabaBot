@@ -1,13 +1,16 @@
-import { Emojis, WarnSeverity } from '#lib/constants'
+import { Color, Emojis, WarnSeverity } from '#lib/constants'
 import { Warn } from '#lib/moderation/structures/Warn'
+import { Timestamp } from '#lib/structures/classes/Timestamp'
 import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
+import { warnActionData } from '#lib/types/Data'
 import { runAllChecks } from '#lib/util/discord/discord'
+import { mins } from '#lib/util/functions/duration'
 import { ApplyOptions } from '@sapphire/decorators'
 import { isGuildMember } from '@sapphire/discord.js-utilities'
 import { Duration } from '@sapphire/duration'
 import type { Command } from '@sapphire/framework'
 import { Subcommand } from '@sapphire/plugin-subcommands'
-import type { APIApplicationCommandOptionChoice } from 'discord.js'
+import { PermissionFlagsBits, type APIApplicationCommandOptionChoice, GuildTextBasedChannel, Collection, Colors } from 'discord.js'
 import { randomUUID } from 'node:crypto'
 
 @ApplyOptions<Subcommand.Options>({
@@ -101,6 +104,30 @@ export class UserCommand extends Subcommand {
 								.setRequired(false)
 						)
 				)
+				.addSubcommand((command) => 
+					command
+						.setName('remove')
+						.setDescription('Remove warning from a member')
+						.addUserOption((option) =>
+							option
+								.setName('target')
+								.setDescription('The member to remove a warning from')
+								.setRequired(true)
+						)
+						.addStringOption((option) =>
+							option
+								.setName('warn_id')
+								.setDescription('ID of the warning to remove')
+								.setRequired(true)
+								.setAutocomplete(true)
+						)
+						.addStringOption((option) =>
+							option
+								.setName('reason for the removal')
+								.setDescription('The reason for the removal')
+								.setRequired(false)
+						)
+				)
 		})
 	}
 
@@ -108,7 +135,6 @@ export class UserCommand extends Subcommand {
 		return this.add(interaction)
 	}
 
-    // TODO: finish
     private async add(interaction: FutabaCommand.ChatInputCommandInteraction) {
         const member = interaction.options.getMember('target')
 		const reason = interaction.options.getString('reason', true)
@@ -124,7 +150,7 @@ export class UserCommand extends Subcommand {
 			});
 		}
 
-		const { content: response, result } = runAllChecks(interaction.member, member, 'warn')
+		let { content: response, result } = runAllChecks(interaction.member, member, 'warn')
 		if (!result || member.user.bot) {
 			return interaction.reply({
 				content: response || `${Emojis.Cross} Bots cannot be warned!`,
@@ -166,9 +192,88 @@ export class UserCommand extends Subcommand {
 		const moderator = interaction.member
 		const warn = new Warn(interaction.guild.id, warnId, severity, expirationDate.toISOString(), member, moderator, reason)
 
-		const success = this.container.warns.add(interaction.guild, warn)
-		return
+		const success = await this.container.warns.add(interaction.guild, warn)
+
+		if (!success) {
+			return interaction.reply({
+				content: `${Emojis.SweatSmile} Something went wrong! Please try your request again.`
+			})
+		}
+
+		const userWarnings = await this.container.warns.getMemberWarnings(interaction.guild, member)
+		const totalSeverity = userWarnings.reduce((acc, warn) => acc + warn.severity, 0) ?? severity
+		const totalWarns = userWarnings.length
+		const actions = await this.container.warns.getActions(interaction.guild)
+
+
+		if(userWarnings.length === 0) {
+			return interaction.reply({
+				content: `${Emojis.SweatSmile} Something went wrong! Please try your request again.`
+			})
+		}
+
+		response = `${member} has been warned for __${reason}__\nWarn ID: \`${warnId}\`\n*They now have ${totalWarns} warning(s)*`
+		if (!silent) {
+			await member
+				.send({
+					content: `You have been warned in ${member.guild.name} for __${reason}__\n`
+				}).catch(() => {
+					response += `\n\n> ${Emojis.Cross} Couldn't DM member`
+				})
+		}
+
+		await interaction.reply({ content: response, ephemeral: true })
+
+		const data: warnActionData = {
+			warnId: warn.uuid,
+			target: member,
+			moderator,
+			duration: new Timestamp(expirationDate.getTime()),
+			reason,
+			severity,
+			action: 'warn'
+		}
+
+		
+		// TODO: log WarnActionData to a moderator logs channel
+
+		if(deleteMsgs) {
+			if (!interaction.guild.members.me?.permissions.has(PermissionFlagsBits.ManageMessages)) {
+				return interaction.followUp({
+					content: "I don't have the `Manage Messages` permission, so I couldn't delete any messages.",
+					ephemeral: true
+				})
+			}
+			const textChannels = interaction.guild.channels.cache.filter((c) => {
+				c.isTextBased() && c.permissionsFor(interaction.guild.members.me!).has(PermissionFlagsBits.ManageMessages)
+			}) as Collection<string, GuildTextBasedChannel>
+
+			for (const channel of textChannels.values()) {
+				const messages = await channel.messages.fetch({ limit: 15 }).catch(() => null)
+				if (!messages) continue;
+				for(const message of messages.filter((m) => m.author.id === member.id).values()) {
+					if (!message) continue;
+					if(message.deletable && (message.editedTimestamp ?? message.createdTimestamp) > Date.now() - mins(15)) {
+						await message.delete().catch(() => null);
+					}
+				}
+
+			}
+		}
+		
+		return interaction.channel.send({
+			embeds: [
+				{
+					description: `${member} has been warned.`,
+					color: Color.Moderation
+				}
+			]
+		})
+
+
     }
+
+
 }
 
 const expirationFromSeverity = {
