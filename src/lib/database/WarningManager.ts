@@ -1,8 +1,9 @@
-import { Collection, Guild } from "discord.js";
+import { Collection, Guild, GuildMember } from "discord.js";
 import { Warn } from "#lib/moderation/structures/Warn";
 import { container } from "@sapphire/framework";
-import { PrismaClient } from "@prisma/client";
-import { warn } from "console";
+import { Prisma, PrismaClient, WarnAction } from "@prisma/client";
+import { handlePrismaError } from "./utils";
+import { GetResult, PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
 export class WarningManager {
     
@@ -61,27 +62,89 @@ export class WarningManager {
                 }
             })
         }
-        
-        const result = await this.db.warn.create({
-            data: {
-                id: warning.uuid,
-                targetId: warning.member!.toString() ?? '-1',
-                guildId: warning.guildID,
-                date: new Date().toISOString(),
-                expiration: warning.expiration!,
-                mod: warning.mod?.toString() ?? '-1',
-                reason: warning.reason,
-                severity: warning.severity,
+
+        let result
+        try {
+            result = await this.db.warn.create({
+                data: {
+                    id: warning.uuid,
+                    targetId: warning.member!.toString() ?? '-1',
+                    guildId: warning.guildID,
+                    date: new Date().toISOString(),
+                    expiration: warning.expiration!,
+                    mod: warning.mod?.toString() ?? '-1',
+                    reason: warning.reason,
+                    severity: warning.severity,
+                }
+            })
+            
+            // add to cache
+            if (result) {
+                const guildWarnings = this.cache.get(guild) ?? new Collection<string, Warn>()
+                guildWarnings.set(result.id, warning)
             }
-        })
-        
-        // add to cache
-        if (result) {
-            const guildWarnings = this.cache.get(guild) ?? new Collection<string, Warn>()
-            guildWarnings.set(result.id, warning)
+        } catch(e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError) {
+                throw handlePrismaError(e)
+            }
         }
 
         return result ? true : false
+    }
+
+    async remove(warningID: string): Promise<boolean> {
+
+    }
+
+    async getMemberWarnings(guild: Guild, member: GuildMember, forceUpdate: boolean = false): Promise<Warn[]> {
+        if (!this.cache.has(guild)) {
+            // no warnings exist for this guild, return an empty array
+            return []
+        }
+
+        if (forceUpdate) {
+            // forcibly check the database to get the latest data for this member
+            try {
+                const memberWarnings = await this.db.warn.findMany({
+                    where: { targetId: member.id }
+                })
+
+                let result: Warn[]
+                if (memberWarnings.length > 0) {
+                    for(const warn of memberWarnings) {
+                        const moderator = container.client.guilds.resolve(guild).members.cache.get(warn.mod)
+                        let warning = new Warn(warn.guildId, warn.id, warn.severity, warn.expiration.toDateString(), member, moderator, warn.reason ?? undefined, warn.status)
+                        
+                        this.cache.get(guild)?.set(warning.uuid, warning)
+                    }
+
+                    const cacheWarnings = this.cache.get(guild)?.filter((warn) => warn.member?.id === member.id).values()
+                    result = cacheWarnings ? [...cacheWarnings] : []
+                } else {
+                    // no warnings exist for the user, we can return an empty array
+                     result = []
+                }
+                return result
+            } catch(err) {
+                if (err instanceof PrismaClientKnownRequestError) {
+                    throw handlePrismaError(err)
+                } else {
+                    throw err
+                }
+            }
+        } else {
+            const memberWarnings = this.cache.get(guild)?.filter((warn) => warn.member?.id === member.id)
+            return memberWarnings ? [...memberWarnings.values()] : []
+        }
+    }
+
+    async getActions(guild: Guild): Promise<GetResult<WarnAction, any>[] | undefined> {
+        const result = await this.db.guildWarns.findUnique({
+            select: { actions: true },
+            where: { id: guild.id }
+        })
+        
+        return result ? result.actions.sort((a, b) => a.severity - b.severity) : undefined
     }
 }
  
