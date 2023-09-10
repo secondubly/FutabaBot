@@ -1,9 +1,9 @@
-import { Collection, Guild, GuildMember } from "discord.js";
-import { Warn } from "#lib/moderation/structures/Warn";
-import { container } from "@sapphire/framework";
+import { Collection, Guild, GuildMember } from "discord.js"
+import { Warn } from "#lib/moderation/structures/Warn"
+import { container } from "@sapphire/framework"
 import { Prisma, PrismaClient, WarnAction } from "@prisma/client";
-import { handlePrismaError } from "./utils";
-import { GetResult, PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { handlePrismaError } from "./utils"
+import { GetResult, PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
 
 export class WarningManager {
     
@@ -80,6 +80,10 @@ export class WarningManager {
             
             // add to cache
             if (result) {
+                if (!this.cache.has(guild)) {
+                    // if the cache hasn't been made for this guild yet, create one
+                    this.cache.set(guild, new Collection<string, Warn>)
+                }
                 const guildWarnings = this.cache.get(guild) ?? new Collection<string, Warn>()
                 guildWarnings.set(result.id, warning)
             }
@@ -92,9 +96,9 @@ export class WarningManager {
         return result ? true : false
     }
 
-    async remove(warningID: string): Promise<boolean> {
+    // async remove(warningID: string): Promise<boolean> {
 
-    }
+    // }
 
     async getMemberWarnings(guild: Guild, member: GuildMember, forceUpdate: boolean = false): Promise<Warn[]> {
         if (!this.cache.has(guild)) {

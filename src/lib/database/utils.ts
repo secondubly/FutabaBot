@@ -1,5 +1,5 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
-import { PrismaError } from "./structures/PrismaError";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
+import { PrismaError } from "./structures/PrismaError"
 
 export function handlePrismaError(err: PrismaClientKnownRequestError): PrismaError {
     switch (err.code) {

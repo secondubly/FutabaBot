@@ -5,12 +5,13 @@ import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
 import { warnActionData } from '#lib/types/Data'
 import { runAllChecks } from '#lib/util/discord/discord'
 import { mins } from '#lib/util/functions/duration'
+import { getGuildIds } from '#lib/util/utils'
 import { ApplyOptions } from '@sapphire/decorators'
 import { isGuildMember } from '@sapphire/discord.js-utilities'
 import { Duration } from '@sapphire/duration'
 import type { Command } from '@sapphire/framework'
 import { Subcommand } from '@sapphire/plugin-subcommands'
-import { PermissionFlagsBits, type APIApplicationCommandOptionChoice, GuildTextBasedChannel, Collection, Colors } from 'discord.js'
+import { PermissionFlagsBits, type APIApplicationCommandOptionChoice, GuildTextBasedChannel, Collection } from 'discord.js'
 import { randomUUID } from 'node:crypto'
 
 @ApplyOptions<Subcommand.Options>({
@@ -48,6 +49,7 @@ import { randomUUID } from 'node:crypto'
 		}
 	]
 })
+
 export class UserCommand extends Subcommand {
 	private readonly severityChoices: APIApplicationCommandOptionChoice<warnSeverityNum>[] = [
 		{ name: '1 | 1 day', value: 1 },
@@ -91,44 +93,21 @@ export class UserCommand extends Subcommand {
 								.setRequired(false)
 						)
 						.addIntegerOption((option) =>
-							option
+							option //
 								.setName('severity')
 								.setDescription('Severity of the warning')
 								.setRequired(false)
 								.addChoices(...this.severityChoices)
 						)
 						.addBooleanOption((option) =>
-							option
+							option //
 								.setName('silent')
 								.setDescription('Should I inform the target? If set to true, no warning will be sent! (Default: false)')
 								.setRequired(false)
 						)
 				)
-				.addSubcommand((command) => 
-					command
-						.setName('remove')
-						.setDescription('Remove warning from a member')
-						.addUserOption((option) =>
-							option
-								.setName('target')
-								.setDescription('The member to remove a warning from')
-								.setRequired(true)
-						)
-						.addStringOption((option) =>
-							option
-								.setName('warn_id')
-								.setDescription('ID of the warning to remove')
-								.setRequired(true)
-								.setAutocomplete(true)
-						)
-						.addStringOption((option) =>
-							option
-								.setName('reason for the removal')
-								.setDescription('The reason for the removal')
-								.setRequired(false)
-						)
-				)
-		})
+		},
+		{ guildIds: getGuildIds() })
 	}
 
 	public async chatInputAdd(interaction: FutabaCommand.ChatInputCommandInteraction) {
@@ -212,7 +191,7 @@ export class UserCommand extends Subcommand {
 			})
 		}
 
-		response = `${member} has been warned for __${reason}__\nWarn ID: \`${warnId}\`\n*They now have ${totalWarns} warning(s)*`
+		response = `${member} has been warned for __${reason}__\nWarn ID: \`${warnId}\`\n*They now have ${totalWarns === 1 ? `${totalWarns} warning` : `${totalWarns} warnings`}*`
 		if (!silent) {
 			await member
 				.send({
@@ -240,7 +219,7 @@ export class UserCommand extends Subcommand {
 		if(deleteMsgs) {
 			if (!interaction.guild.members.me?.permissions.has(PermissionFlagsBits.ManageMessages)) {
 				return interaction.followUp({
-					content: "I don't have the `Manage Messages` permission, so I couldn't delete any messages.",
+					content: `${Emojis.SweatSmile} I don't have the \`Manage Messages\` permission, so I couldn't delete any messages.`,
 					ephemeral: true
 				})
 			}
@@ -269,11 +248,7 @@ export class UserCommand extends Subcommand {
 				}
 			]
 		})
-
-
     }
-
-
 }
 
 const expirationFromSeverity = {
