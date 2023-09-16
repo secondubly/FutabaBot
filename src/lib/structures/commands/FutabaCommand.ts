@@ -6,7 +6,8 @@ import { PermissionFlagsBits,
 	ChatInputCommandInteraction as ChatInputInteraction,
 	ContextMenuCommandInteraction as CTXMenuCommandInteraction,
 	UserContextMenuCommandInteraction as UserCTXMenuCommandInteraction,
-	MessageContextMenuCommandInteraction as MessageCTXCommandInteraction } from 'discord.js'
+	MessageContextMenuCommandInteraction as MessageCTXCommandInteraction, 
+	AutocompleteInteraction} from 'discord.js'
 import { Command } from '@sapphire/framework'
 
 export abstract class FutabaCommand extends Command {
@@ -93,4 +94,5 @@ export namespace FutabaCommand {
 	export type ContextMenuCommandInteraction = CTXMenuCommandInteraction<'cached'>;
 	export type UserContextMenuCommandInteraction = UserCTXMenuCommandInteraction<'cached'>;
 	export type MessageContextMenuCommandInteraction = MessageCTXCommandInteraction<'cached'>;
+	export type AutoComplete = AutocompleteInteraction;
 }

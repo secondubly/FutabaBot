@@ -9,10 +9,10 @@ import { getGuildIds } from '#lib/util/utils'
 import { ApplyOptions } from '@sapphire/decorators'
 import { isGuildMember } from '@sapphire/discord.js-utilities'
 import { Duration } from '@sapphire/duration'
-import type { Command } from '@sapphire/framework'
 import { Subcommand } from '@sapphire/plugin-subcommands'
-import { PermissionFlagsBits, type APIApplicationCommandOptionChoice, GuildTextBasedChannel, Collection } from 'discord.js'
+import { PermissionFlagsBits, type APIApplicationCommandOptionChoice, GuildTextBasedChannel, Collection, GuildMember } from 'discord.js'
 import { randomUUID } from 'node:crypto'
+import { cutText, isNullishOrEmpty } from '@sapphire/utilities'
 
 @ApplyOptions<Subcommand.Options>({
 	description: 'Manage warnings for a user',
@@ -59,7 +59,7 @@ export class UserCommand extends Subcommand {
 		{ name: '5 | 4 weeks', value: 5 }
 	]
 
-	public override registerApplicationCommands(registry: Command.Registry) {
+	public override registerApplicationCommands(registry: Subcommand.Registry) {
 		registry.registerChatInputCommand((builder) => {
 			builder
 				.setName(this.name)
@@ -106,6 +106,30 @@ export class UserCommand extends Subcommand {
 								.setRequired(false)
 						)
 				)
+				.addSubcommand((command) =>
+				command
+					.setName('remove')
+					.setDescription('Remove warning from a member.')
+					.addUserOption((option) =>
+						option
+							.setName('target')
+							.setDescription('The member to remove a warning from.')
+							.setRequired(true)
+					)
+					.addStringOption((option) =>
+						option
+							.setName('warn_id')
+							.setDescription('ID of the warning to remove.')
+							.setRequired(true)
+							.setAutocomplete(true)
+					)
+					.addStringOption((option) =>
+						option
+							.setName('reason')
+							.setDescription('The reason for the removal')
+							.setRequired(false)
+					)
+				)
 		},
 		{ guildIds: getGuildIds() })
 	}
@@ -113,6 +137,10 @@ export class UserCommand extends Subcommand {
 	public async chatInputAdd(interaction: FutabaCommand.ChatInputCommandInteraction) {
 		return this.add(interaction)
 	}
+
+	public async chatInputRemove(interaction: FutabaCommand.ChatInputCommandInteraction) {
+		return this.remove(interaction)
+	} 
 
     private async add(interaction: FutabaCommand.ChatInputCommandInteraction) {
         const member = interaction.options.getMember('target')
@@ -249,6 +277,99 @@ export class UserCommand extends Subcommand {
 			]
 		})
     }
+
+	private async remove(interaction: FutabaCommand.ChatInputCommandInteraction) {
+		const member = interaction.options.getMember('target')
+		const warnId = interaction.options.getString('warn_id', true)
+		const reason = interaction.options.getString('string') ?? 'No reason provided.'
+
+		if (!member) {
+			return interaction.reply({
+				content: `${Emojis.Cross} You must specify a valid member that is in this server!`,
+				ephemeral: true
+			});
+		}
+
+		const warn = await this.container.warns.remove(interaction.guild, warnId, member)
+		if (!warn) {
+			return interaction.reply({
+				content:
+					`That warning does not exist on ${member}\n` +
+					`Possible reasons: \n` +
+					`\` - \` The warning ID is incorrect\n` +
+					`\` - \` The member has not been warned`
+			});
+		}
+
+		const totalWarns = (await this.container.warns.getMemberWarnings(interaction.guild, member)).length
+
+		
+		const response = `${member} had their warning removed.\n*They now have ${totalWarns === 1 ? `${totalWarns} warning` : `${totalWarns} warnings`}.*`
+
+		return interaction.reply({ content: response, ephemeral: true})
+	}
+
+	public override async autocompleteRun(interaction: FutabaCommand.AutoComplete) {
+		const focus = interaction.options.getFocused(true)
+
+		if(focus.name === 'warn_id') {
+			const id = interaction.options.get('target')?.value as string
+			if (!id) {
+				return this.noAutoCompleteResults(interaction, 'warning')
+			}
+
+			const member = (await interaction.guild?.members.fetch(id).catch(() => null)) as GuildMember
+			if (!member) {
+				return this.noAutoCompleteResults(interaction, 'warning')
+			}
+
+			const memberWarnings = await this.container.warns.getMemberWarnings(interaction.guild!, member)
+			if(isNullishOrEmpty(memberWarnings)) {
+				return this.noAutoCompleteResults(interaction, 'warning')
+			}
+
+			const warnIds = memberWarnings.map((warn) => warn.uuid)
+			if(isNullishOrEmpty(warnIds)) {
+				// shouldn't ever fire honestly
+				return this.noAutoCompleteResults(interaction, 'warning')
+			}
+
+			const choices: APIApplicationCommandOptionChoice[] = []
+			for(const warnId of warnIds) {
+				const matchingWarn = memberWarnings.find((m) => m.uuid === warnId)
+
+				if (!matchingWarn) {
+					continue
+				}
+
+				const modId = matchingWarn.mod?.id ?? this.container.client.user?.id
+				if (!modId) {
+					continue
+				}
+
+				const mod = await this.container.client.users.fetch(modId)
+				const name = cutText(`${matchingWarn.uuid} | Mod: ${mod.tag} | Reason: ${matchingWarn.reason ?? 'N/A'}`, 100);
+
+				choices.push({
+					name,
+					value: matchingWarn.uuid
+				})
+			}
+
+			const filteredChoices = choices.filter((choice) => choice.name.toLowerCase().includes((focus.value as string).toLowerCase())).slice(0,24)
+
+			return interaction.respond(filteredChoices)
+		}
+	}
+
+	private noAutoCompleteResults(interaction: FutabaCommand.AutoComplete, autocompleteParam: string) {
+		return interaction.respond([
+			{
+				name: `No ${autocompleteParam}s found`,
+				value: ''
+			}
+		])
+	}
 }
 
 const expirationFromSeverity = {

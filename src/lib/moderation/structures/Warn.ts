@@ -14,4 +14,8 @@ export class Warn {
 		public updateStatus(status: string) {
 			this.status = status
 		}
+
+		public getStatus() {
+			return this.status
+		}
 }

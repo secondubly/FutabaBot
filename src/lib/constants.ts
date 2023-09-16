@@ -28,6 +28,11 @@ export const enum WarnSeverity {
 	Five = '4 weeks'
 }
 
+export const enum WarnStatus {
+	Active = 'a',
+	Inactive = 'd'
+}
+
 export const enum Color {
 	Core = 0xffa500,
 	Moderation = 0x228b22
