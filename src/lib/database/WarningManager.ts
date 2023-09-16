@@ -33,9 +33,9 @@ export class WarningManager {
                     return undefined
                 }
 
-                const moderator = container.client.guilds.resolve(guild).members.cache.get(result.mod) ?? undefined
-                const member = container.client.guilds.resolve(guild).members.cache.get(result.targetId) ?? undefined
-                warn = new Warn(result.guildId, result.id, result.severity, result.expiration.toDateString(), member, moderator, result.reason ?? undefined)
+                const moderator = container.client.guilds.resolve(guild).members.cache.get(result.mod) ?? await container.client.guilds.resolve(guild).members.fetch(result.mod)
+                const member = container.client.guilds.resolve(guild).members.cache.get(result.targetId) ?? await container.client.guilds.resolve(guild).members.fetch(result.targetId)
+                warn = new Warn(result.guildId, result.id, result.severity, result.expiration, member, moderator, result.reason, result.status, result.date)
             }
 
             return warn
@@ -139,10 +139,10 @@ export class WarningManager {
                     return null
                 }
 
-                const member = guild.members.cache.get(result.targetId)
-                const mod = guild.members.cache.get(result.mod)
+                const member = guild.members.cache.get(result.targetId) ?? await guild.members.fetch(result.targetId)
+                const mod = guild.members.cache.get(result.mod) ?? await guild.members.fetch(result.mod)
                 
-                warn = new Warn(guild.id, result.id, result.severity, result.expiration.toDateString(), member, mod, result.reason ?? undefined, WarnStatus.Inactive)
+                warn = new Warn(guild.id, result.id, result.severity, result.expiration, member, mod, result.reason, WarnStatus.Inactive, result.date)
             } else {
                 warn = this.cache.get(guild)!.get(warningID)!
             }
@@ -168,7 +168,7 @@ export class WarningManager {
         return warn
     }
 
-    async getMemberWarnings(guild: Guild, member: GuildMember, forceUpdate: boolean = false): Promise<Warn[]> {
+    async getMemberWarnings(guild: Guild, member: GuildMember, forceUpdate: boolean = false, getAllWarns: boolean = false): Promise<Warn[]> {
         if (!this.cache.has(guild)) {
             // cache-miss, hit the db
             const guildWarnings = await this.getGuildWarnings(guild)
@@ -177,7 +177,7 @@ export class WarningManager {
                 return []
             }
 
-            const memberWarnings = guildWarnings.filter((warn) => warn.member?.id === member.id && warn.getStatus() === WarnStatus.Active)
+            const memberWarnings = guildWarnings.filter((warn) => getAllWarns ? warn.member?.id === member.id : warn.member?.id === member.id && warn.getStatus() === WarnStatus.Active)
             return isNullishOrEmpty(memberWarnings) ? [] : [...memberWarnings.values()]
         }
 
@@ -191,8 +191,8 @@ export class WarningManager {
                 let result: Warn[]
                 if (memberWarnings.length > 0) {
                     for(const warn of memberWarnings) {
-                        const moderator = container.client.guilds.resolve(guild).members.cache.get(warn.mod)
-                        let warning = new Warn(warn.guildId, warn.id, warn.severity, warn.expiration.toDateString(), member, moderator, warn.reason ?? undefined, warn.status)
+                        const moderator = container.client.guilds.resolve(guild).members.cache.get(warn.mod) ?? await container.client.guilds.resolve(guild).members.fetch(warn.mod)
+                        let warning = new Warn(warn.guildId, warn.id, warn.severity, warn.expiration, member, moderator, warn.reason, warn.status, warn.date)
                         
                         this.cache.get(guild)?.set(warning.uuid, warning)
                     }
@@ -212,8 +212,8 @@ export class WarningManager {
                 }
             }
         } else {
-            const memberWarnings = this.cache.get(guild)?.filter((warn) => warn.member?.id === member.id && warn.getStatus() === WarnStatus.Active)
-            return memberWarnings ? [...memberWarnings.values()] : []
+            const memberWarnings = this.cache.get(guild)?.filter((warn) => getAllWarns ? warn.member?.id === member.id : warn.member?.id === member.id && warn.getStatus() === WarnStatus.Active)
+            return isNullishOrEmpty(memberWarnings) ? [] : [...memberWarnings.values()]
         }
     }
 
@@ -242,16 +242,14 @@ export class WarningManager {
             return new Collection<string, Warn>()
         }
 
-        const guildWarnList = result.warns.reduce((acc, curr) => {
+        const guildWarnList: Collection<string, Warn> = new Collection()
+        for(const warn of result.warns) {
+            const target = guild.members.cache.get(warn.targetId) ?? await guild.members.fetch(warn.targetId)
+            const mod = guild.members.cache.get(warn.mod) ?? await guild.members.fetch(warn.mod)
 
-            const target = guild.members.cache.get(curr.targetId)
-            const mod = guild.members.cache.get(curr.mod)
-
-            const warn = new Warn(guild.id, curr.id, curr.severity, curr.expiration.toDateString(), target, mod, curr.reason ?? undefined, curr.status)
-            acc.set(warn.uuid, warn)
-
-            return acc
-        }, new Collection<string, Warn>)
+            const warnObj = new Warn(guild.id, warn.id, warn.severity, warn.expiration, target, mod, warn.reason, warn.status, warn.date)
+            guildWarnList.set(warnObj.uuid, warnObj)
+        }
 
         this.cache.set(guild, guildWarnList)
         return guildWarnList
