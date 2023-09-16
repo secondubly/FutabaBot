@@ -34,9 +34,9 @@ export class UserCommand extends ModerationCommand {
 				.addStringOption((option) => option.setName('reason').setDescription('Reason for timeout').setRequired(false))
 				.addBooleanOption((option) =>
 					option.setName('dm').setDescription('Send a DM to the timed out user (default: false)').setRequired(false)
-				)
+				),
+				{ guildIds: getGuildIds() }
 		),
-		{ guildIds: getGuildIds() }
 
 		// Register Context Menu command available from any user
 		registry.registerContextMenuCommand({
@@ -112,5 +112,9 @@ export class UserCommand extends ModerationCommand {
 			response = `${Emojis.Confirm} Removed timeout from ${member}`
 		}
 		return interaction.editReply(response)
+	}
+
+	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {
+
 	}
 }
