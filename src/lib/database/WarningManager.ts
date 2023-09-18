@@ -226,7 +226,7 @@ export class WarningManager {
         return result ? result.actions.sort((a, b) => a.severity - b.severity) : undefined
     }
 
-    private async getGuildWarnings(guild: Guild): Promise<Collection<string, Warn>> {
+    public async getGuildWarnings(guild: Guild): Promise<Collection<string, Warn>> {
         const result = await this.db.guildWarns.findUnique({
             select: {
                 warns: true

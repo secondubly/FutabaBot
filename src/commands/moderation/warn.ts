@@ -1,4 +1,4 @@
-import { Color, Emojis, WarnSeverity } from '#lib/constants'
+import { Color, Emojis, WarnSeverity, WarnStatus } from '#lib/constants'
 import { Warn } from '#lib/moderation/structures/Warn'
 import { Timestamp } from '#lib/structures/classes/Timestamp'
 import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
@@ -13,6 +13,8 @@ import { Subcommand } from '@sapphire/plugin-subcommands'
 import { PermissionFlagsBits, type APIApplicationCommandOptionChoice, GuildTextBasedChannel, Collection, GuildMember, EmbedBuilder } from 'discord.js'
 import { randomUUID } from 'node:crypto'
 import { cutText, isNullishOrEmpty } from '@sapphire/utilities'
+import { ButtonPaginated } from '#lib/structures/classes/ButtonPaginated'
+import { groupBy } from '#lib/utils'
 
 @ApplyOptions<Subcommand.Options>({
 	description: 'Manage warnings for a user',
@@ -147,6 +149,17 @@ export class UserCommand extends Subcommand {
 								.setRequired(false)
 						)
 				)
+				.addSubcommand((command) =>
+					command
+						.setName('list_all')
+						.setDescription('Lists all warns of all members.')
+						.addBooleanOption((command) =>
+						command
+							.setName('warn_filter')
+							.setDescription('Show inactive warns as well? (Default: false)')
+							.setRequired(false)
+						)
+				)
 		},
 		{ guildIds: getGuildIds() })
 	}
@@ -161,6 +174,10 @@ export class UserCommand extends Subcommand {
 
 	public async chatInputList(interaction: FutabaCommand.ChatInputCommandInteraction) {
 		return this.list(interaction)
+	}
+
+	public async chatInputListAll(interaction: FutabaCommand.ChatInputCommandInteraction) {
+		return this.listAll(interaction)
 	}
 
     private async add(interaction: FutabaCommand.ChatInputCommandInteraction) {
@@ -387,6 +404,38 @@ export class UserCommand extends Subcommand {
 
 	}
 
+	private async listAll(interaction: FutabaCommand.ChatInputCommandInteraction) {
+		const listAll = interaction.options.getBoolean('warn_filter') ?? false
+		const guildWarns = await this.container.warns.getGuildWarnings(interaction.guild)
+		if (guildWarns.size === 0) {
+			return interaction.reply({
+				content: `${interaction.guild} has no warnings.`,
+				ephemeral: true
+			})
+		}
+
+		let filteredWarns = listAll ? guildWarns : guildWarns.filter((w) => w.getStatus() === WarnStatus.Active)
+		let groupedWarns = groupBy([...filteredWarns.values()], 'member') as Map<GuildMember, Warn[]>
+		const paginatedEmbed = new ButtonPaginated()
+
+		for (const [member, warn] of groupedWarns) {
+			const target = await this.container.client.users.fetch(member.user.id)
+			
+			const embed = new EmbedBuilder()
+				.setColor('Random')
+				.setTitle('Server Infractions')
+				.setAuthor({name: target.tag })
+				.setDescription(this.generateDescription(warn))
+				.setFooter({ text: `Requested by ${interaction.user.username}`})
+				.setTimestamp()
+				.setThumbnail(target.displayAvatarURL({ forceStatic: true }))
+			
+				paginatedEmbed.addPageEmbed(embed)
+		}
+
+		return paginatedEmbed.run(interaction)
+	}
+
 	public override async autocompleteRun(interaction: FutabaCommand.AutoComplete) {
 		const focus = interaction.options.getFocused(true)
 
@@ -447,6 +496,14 @@ export class UserCommand extends Subcommand {
 				value: ''
 			}
 		])
+	}
+
+	private generateDescription(warn: Warn[]): string {
+		return warn.map((w) => {
+			const givenDate = new Timestamp(w.created.getTime()).getShortDate()
+			return `\` - \` Date: ${givenDate} \`|\` Reason: ${w.reason}`
+		})
+		.join('\n')
 	}
 }
 
