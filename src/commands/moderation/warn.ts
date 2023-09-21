@@ -2,13 +2,13 @@ import { Color, Emojis, WarnSeverity, WarnStatus } from '#lib/constants'
 import { Warn } from '#lib/moderation/structures/Warn'
 import { Timestamp } from '#lib/structures/classes/Timestamp'
 import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
-import { warnActionData } from '#lib/types/Data'
+import { warnAction, warnActionData } from '#lib/types/Data'
 import { runAllChecks } from '#lib/util/discord/discord'
 import { mins } from '#lib/util/functions/duration'
 import { getGuildIds } from '#lib/util/utils'
 import { ApplyOptions } from '@sapphire/decorators'
 import { PaginatedMessageEmbedFields, isGuildMember } from '@sapphire/discord.js-utilities'
-import { Duration } from '@sapphire/duration'
+import { Duration, DurationFormatter } from '@sapphire/duration'
 import { Subcommand } from '@sapphire/plugin-subcommands'
 import { PermissionFlagsBits, type APIApplicationCommandOptionChoice, GuildTextBasedChannel, Collection, GuildMember, EmbedBuilder } from 'discord.js'
 import { randomUUID } from 'node:crypto'
@@ -59,6 +59,13 @@ export class UserCommand extends Subcommand {
 		{ name: '3 | 1 week', value: 3 },
 		{ name: '4 | 2 weeks', value: 4 },
 		{ name: '5 | 4 weeks', value: 5 }
+	]
+
+	private readonly warnActions: APIApplicationCommandOptionChoice<warnAction>[] = [
+		{ name: 'Kick', value: 'kick' },
+		{ name: 'Ban', value: 'ban' },
+		{ name: 'Softban', value: 'softban' },
+		{ name: 'Timeout', value: 'timeout' }
 	]
 
 	public override registerApplicationCommands(registry: Subcommand.Registry) {
@@ -158,6 +165,57 @@ export class UserCommand extends Subcommand {
 							.setName('warn_filter')
 							.setDescription('Show inactive warns as well? (Default: false)')
 							.setRequired(false)
+						)
+				)
+				.addSubcommandGroup((group) =>
+					group
+						.setName('action')
+						.setDescription('Perform automated actions based on warns')
+						.addSubcommand((command) =>
+							command
+								.setName('create')
+								.setDescription('Create a new automated action.')
+								.addStringOption((option) =>
+									option //
+										.setName('action')
+										.setDescription('The action to perform')
+										.setRequired(true)
+										.setChoices(...this.warnActions)
+								)
+								.addIntegerOption((option) =>
+									option //
+										.setName('severity')
+										.setDescription('The severity at which the action should be triggered [1 - 250]')
+										.setMinValue(1)
+										.setMaxValue(250)
+										.setRequired(true)
+							)
+							.addStringOption((option) =>
+								option //
+									.setName('duration')
+									.setDescription('The duration of the action (only for Timeout)')
+									.setRequired(false)
+									
+							)
+						)
+						.addSubcommand((builder) =>
+							builder //
+								.setName('remove')
+								.setDescription('Remove an automated action')
+								.addIntegerOption((option) =>
+									option //
+										.setName('severity')
+										.setDescription('The severity trigger of the action')
+										.setMinValue(1)
+										.setMaxValue(250)
+										.setAutocomplete(true)
+										.setRequired(true)
+								)
+						)
+						.addSubcommand((builder) =>
+							builder //
+								.setName('list')
+								.setDescription('List all automated actions')
 						)
 				)
 		},
@@ -434,6 +492,65 @@ export class UserCommand extends Subcommand {
 		}
 
 		return paginatedEmbed.run(interaction)
+	}
+
+	// TODO: test!
+	public async chatInputActionCreate(interaction: FutabaCommand.ChatInputCommandInteraction) {
+		const action = interaction.options.getString('action', true) as warnAction
+		const severity = interaction.options.getInteger('severity', true)
+		let time = interaction.options.getString('duration')
+		await interaction.deferReply()
+
+		let content = `\nAction will be applied to any user who crosses the ${severity} severity threshold in warnings.`
+
+		if(action === 'timeout' && !time) {
+			return interaction.editReply(`Please provide a valid timeout duration!`)
+		}
+		
+		let duration: number | undefined
+
+		if (action === 'timeout' && time) { // the && time prevents typescript from complaining further down
+			if (!isNaN(Number(time))) {
+				time += 's'
+			}
+
+			duration = new Duration(time).offset
+
+			if (isNaN(duration)) {
+				return interaction.editReply(`${Emojis.Cross} Invalid duration! Valid examples: \`1 week\`, \`1h\`, \`10 days\`, \`5 hours\``)
+			}
+
+			const MAX_TIMEOUT_DURATION = new Duration('28d').offset;
+
+			if (duration > MAX_TIMEOUT_DURATION) {
+				return interaction.editReply(`${Emojis.Cross} You cannot time out a member for more than 28 days!`)
+			}
+		}
+
+		const result = await this.container.warns.addWarnAction({action, severity, expiration: duration}, interaction.guild)
+
+		if (result === undefined) {
+			return interaction.editReply({
+				content: `You have 10 actions already! There is a limit of 10 actions\nRemove actions in order to create a new one!`
+			})
+		}
+
+		if (result === null) {
+			return interaction.editReply({
+				content: `${Emojis.Cross} An action already exists for severity ${severity}`
+			})
+		}
+
+		if (time && action !== 'timeout') {
+			content += `\n\n> Note: The duration will be ignored here since the action is not a timeout.`
+		}
+
+
+		const timeoutContent = time && action === 'timeout' ? content += `\n\n  with a duration of __${new DurationFormatter().format(duration!)}__`: '.'
+
+		return interaction.editReply({
+			content: `${Emojis.Confirm} Successfully added a ${action} action${timeoutContent}\n${content}`
+		});
 	}
 
 	public override async autocompleteRun(interaction: FutabaCommand.AutoComplete) {

@@ -1,11 +1,12 @@
 import { Collection, Guild, GuildMember } from "discord.js"
 import { Warn } from "#lib/moderation/structures/Warn"
 import { container } from "@sapphire/framework"
-import { PrismaClient, WarnAction } from "@prisma/client";
+import { Prisma, PrismaClient, WarnAction } from "@prisma/client";
 import { handlePrismaError } from "./utils"
 import { GetResult, PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
 import { WarnStatus } from "#lib/constants";
 import { isNullishOrEmpty } from "@sapphire/utilities";
+import { warnAction } from "#lib/types/Data";
 
 export class WarningManager {
     
@@ -255,6 +256,45 @@ export class WarningManager {
         return guildWarnList
     }
 
+    public async addWarnAction(action: WarnActionObject, guild: Guild): Promise<WarnAction | undefined> {
+        const data = await this.db.guildWarns.findUnique({
+            select: { actions: true },
+            where: { id: guild.id }
+        })
+
+        const existingActions = data?.actions
+        if (existingActions && existingActions.length >= 10) {
+            console.warn(`Attempted to add a warn action to guild ${guild}, but they have reached the warn action limit.`)
+            return undefined // TODO: should we return an empty object instead?
+        }
+
+        await this.db.guildWarns.upsert({
+            where: {
+                id: guild.id
+            },
+            update: {},
+            create: {
+                id: guild.id
+            }
+        })
+
+        return this.db.warnAction.upsert({
+            where: {
+                guild_severity_unique: {
+                    guildId: guild.id,
+                    severity: action.severity
+                }
+            },
+            update: {},
+            create: {
+                action: action.action,
+                severity: action.severity,
+                expiration: action.expiration,
+                guildId: guild.id
+            }
+        })
+    }
+
     /**
      * Update database with current warn information
      * @param updateData updated warn object data
@@ -287,4 +327,10 @@ type WarnUpdateData = {
 	mod?: GuildMember,
 	reason?: string,
 	status?: string
+}
+
+type WarnActionObject = {
+    action: warnAction,
+    severity: number,
+    expiration?: number
 }

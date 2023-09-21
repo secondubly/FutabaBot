@@ -53,12 +53,14 @@ model Warn {
 }
 
 model WarnAction {
-  id              String            @id
+  id              Int            @id @default(autoincrement())
   action          String
   severity        Int
   expiration      Int?
   guildId         String
   warnActionId    GuildWarns    @relation("WarnActions", fields: [guildId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([guildId, severity], name: "guild_severity_unique")
 }
 
 model GuildWarns {
