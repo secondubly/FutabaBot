@@ -1,7 +1,7 @@
 import { Collection, Guild, GuildMember } from "discord.js"
 import { Warn } from "#lib/moderation/structures/Warn"
 import { container } from "@sapphire/framework"
-import { PrismaClient, Warn as WarnDBData } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { handlePrismaError } from "../../database/utils"
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
 import { WarnStatus } from "#lib/constants";

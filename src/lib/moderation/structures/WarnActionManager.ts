@@ -72,6 +72,29 @@ export class WarnActionManager {
         })
     }
 
+    public async remove(guild: Guild, severity: number): Promise<WarnAction> {
+        const result = await this.db.warnAction.delete({
+            where: {
+                guild_severity_unique: {
+                    guildId: guild.id,
+                    severity
+                }
+            }
+        })
+
+        // update the cache
+        if (result) {
+            const foundIndex = this.cache.get(guild)?.findIndex((action) => action.severity === severity)
+            if(!foundIndex || foundIndex === -1) {
+                console.warn(`Warn object with severity ${severity} for guild ${guild} not cached`)
+            } else {
+                this.cache.get(guild)?.splice(foundIndex, 1)
+            }
+        }
+
+        return result
+    }
+
     async getActions(guild: Guild): Promise<WarnActionObject[]> {
         if (this.cache.has(guild)) {
             const guildActions = this.cache.get(guild)

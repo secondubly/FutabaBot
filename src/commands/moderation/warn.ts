@@ -15,6 +15,9 @@ import { randomUUID } from 'node:crypto'
 import { cutText, isNullishOrEmpty } from '@sapphire/utilities'
 import { ButtonPaginated } from '#lib/structures/classes/ButtonPaginated'
 import { groupBy } from '#lib/utils'
+import { handlePrismaError } from '#lib/database/utils'
+import { WarnAction as WarnActionPayload } from '@prisma/client'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
 
 @ApplyOptions<Subcommand.Options>({
 	description: 'Manage warnings for a user',
@@ -494,7 +497,6 @@ export class UserCommand extends Subcommand {
 		return paginatedEmbed.run(interaction)
 	}
 
-	// TODO: test!
 	public async chatInputActionCreate(interaction: FutabaCommand.ChatInputCommandInteraction) {
 		const action = interaction.options.getString('action', true) as WarnAction
 		const severity = interaction.options.getInteger('severity', true)
@@ -551,6 +553,28 @@ export class UserCommand extends Subcommand {
 		return interaction.editReply({
 			content: `${Emojis.Confirm} Successfully added a ${action} action${timeoutContent}\n${content}`
 		});
+	}
+
+	public async chatInputActionRemove(interaction: FutabaCommand.ChatInputCommandInteraction) {
+		const severity = interaction.options.getInteger('severity', true)
+
+		let removed: WarnActionPayload | undefined = undefined
+		try {
+			removed = await this.container.actions.remove(interaction.guild, severity)
+		} catch(e) {
+			if (e instanceof PrismaClientKnownRequestError) {
+                throw handlePrismaError(e)
+            }
+		}
+
+		if (!removed) {
+			return interaction.reply({
+				content: 'No action found for this severity',
+				ephemeral: true
+			});
+		}
+
+		return interaction.reply({ content: `${Emojis.Confirm} Successfully removed the ${removed.action} action for ${removed.severity} severity` })
 	}
 
 	public override async autocompleteRun(interaction: FutabaCommand.AutoComplete) {
