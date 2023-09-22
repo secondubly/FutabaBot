@@ -2,7 +2,7 @@ import { Color, Emojis, WarnSeverity, WarnStatus } from '#lib/constants'
 import { Warn } from '#lib/moderation/structures/Warn'
 import { Timestamp } from '#lib/structures/classes/Timestamp'
 import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
-import { warnAction, warnActionData } from '#lib/types/Data'
+import { WarnAction, warnActionData } from '#lib/types/Data'
 import { runAllChecks } from '#lib/util/discord/discord'
 import { mins } from '#lib/util/functions/duration'
 import { getGuildIds } from '#lib/util/utils'
@@ -61,7 +61,7 @@ export class UserCommand extends Subcommand {
 		{ name: '5 | 4 weeks', value: 5 }
 	]
 
-	private readonly warnActions: APIApplicationCommandOptionChoice<warnAction>[] = [
+	private readonly warnActions: APIApplicationCommandOptionChoice<WarnAction>[] = [
 		{ name: 'Kick', value: 'kick' },
 		{ name: 'Ban', value: 'ban' },
 		{ name: 'Softban', value: 'softban' },
@@ -304,9 +304,9 @@ export class UserCommand extends Subcommand {
 		}
 
 		const userWarnings = await this.container.warns.getMemberWarnings(interaction.guild, member)
-		const totalSeverity = userWarnings.reduce((acc, warn) => acc + warn.severity, 0) ?? severity
+		const totalSeverity = userWarnings.reduce((acc: number, warn: Warn) => acc + warn.severity, 0) ?? severity
 		const totalWarns = userWarnings.length
-		const actions = await this.container.warns.getActions(interaction.guild)
+		const actions = await this.container.actions.getActions(interaction.guild)
 
 
 		if(userWarnings.length === 0) {
@@ -426,7 +426,7 @@ export class UserCommand extends Subcommand {
 
 		const warnCount = memberWarns.length
 		const embeds = await Promise.all(
-			memberWarns.map(async (warn) => {
+			memberWarns.map(async (warn: Warn) => {
 				const mod = await this.container.client.users.fetch(warn.mod!)
 				const expiration = new Timestamp(warn.expiration.getTime())
 				const createDate = new Timestamp(warn.created.getTime())
@@ -472,7 +472,7 @@ export class UserCommand extends Subcommand {
 			})
 		}
 
-		let filteredWarns = listAll ? guildWarns : guildWarns.filter((w) => w.getStatus() === WarnStatus.Active)
+		let filteredWarns = listAll ? guildWarns : guildWarns.filter((w: Warn) => w.getStatus() === WarnStatus.Active)
 		let groupedWarns = groupBy([...filteredWarns.values()], 'member') as Map<GuildMember, Warn[]>
 		const paginatedEmbed = new ButtonPaginated()
 
@@ -496,7 +496,7 @@ export class UserCommand extends Subcommand {
 
 	// TODO: test!
 	public async chatInputActionCreate(interaction: FutabaCommand.ChatInputCommandInteraction) {
-		const action = interaction.options.getString('action', true) as warnAction
+		const action = interaction.options.getString('action', true) as WarnAction
 		const severity = interaction.options.getInteger('severity', true)
 		let time = interaction.options.getString('duration')
 		await interaction.deferReply()
@@ -527,7 +527,7 @@ export class UserCommand extends Subcommand {
 			}
 		}
 
-		const result = await this.container.warns.addWarnAction({action, severity, expiration: duration}, interaction.guild)
+		const result = await this.container.actions.add({action, severity, expiration: duration}, interaction.guild)
 
 		if (result === undefined) {
 			return interaction.editReply({
@@ -542,11 +542,11 @@ export class UserCommand extends Subcommand {
 		}
 
 		if (time && action !== 'timeout') {
-			content += `\n\n> Note: The duration will be ignored here since the action is not a timeout.`
+			content += `\n\n> Note: The duration will be ignored since the action is not a timeout.`
 		}
 
 
-		const timeoutContent = time && action === 'timeout' ? content += `\n\n  with a duration of __${new DurationFormatter().format(duration!)}__`: '.'
+		const timeoutContent = time && action === 'timeout' ? `\n\n with a duration of __${new DurationFormatter().format(duration!)}__`: '.'
 
 		return interaction.editReply({
 			content: `${Emojis.Confirm} Successfully added a ${action} action${timeoutContent}\n${content}`
@@ -572,7 +572,7 @@ export class UserCommand extends Subcommand {
 				return this.noAutoCompleteResults(interaction, 'warning')
 			}
 
-			const warnIds = memberWarnings.map((warn) => warn.uuid)
+			const warnIds = memberWarnings.map((warn: Warn) => warn.uuid)
 			if(isNullishOrEmpty(warnIds)) {
 				// shouldn't ever fire honestly
 				return this.noAutoCompleteResults(interaction, 'warning')
@@ -580,7 +580,7 @@ export class UserCommand extends Subcommand {
 
 			const choices: APIApplicationCommandOptionChoice[] = []
 			for(const warnId of warnIds) {
-				const matchingWarn = memberWarnings.find((m) => m.uuid === warnId)
+				const matchingWarn = memberWarnings.find((m: Warn) => m.uuid === warnId)
 
 				if (!matchingWarn) {
 					continue

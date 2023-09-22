@@ -28,4 +28,10 @@ export interface TimeoutActionData extends BaseModActionData {
 
 export type ModActionData = (Partial<TimeoutActionData> | Partial<warnActionData>) & BaseModActionData
 
-export type warnAction = Exclude<modAction, 'warn' | 'warn_remove' | 'unban'>
+export type WarnAction = Exclude<modAction, 'warn' | 'warn_remove' | 'unban'>
+
+export type WarnActionObject = {
+    action: WarnAction,
+    severity: number,
+    expiration?: number
+}
