@@ -1,17 +1,33 @@
 import { Collection, Guild, GuildMember } from "discord.js"
 import { Warn } from "#lib/moderation/structures/Warn"
 import { container } from "@sapphire/framework"
-import { Prisma, PrismaClient, WarnAction } from "@prisma/client";
-import { handlePrismaError } from "./utils"
-import { GetResult, PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
+import { PrismaClient, Warn as WarnDBData } from "@prisma/client";
+import { handlePrismaError } from "../../database/utils"
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
 import { WarnStatus } from "#lib/constants";
 import { isNullishOrEmpty } from "@sapphire/utilities";
-import { warnAction } from "#lib/types/Data";
 
 export class WarningManager {
     
     public readonly cache: WeakMap<Guild, Collection<string, Warn>> = new WeakMap()
     private readonly db: PrismaClient = container.db
+
+    constructor(guilds: Guild[], warnings: Warn[]) {
+        for (const warn of warnings) {
+            const warnGuildId = warn.guildID
+            const matchingGuild = guilds.find((guild) => guild.id === warnGuildId)
+            if(matchingGuild) {
+                if(this.cache.has(matchingGuild)) {
+                    const guildWarns = this.cache.get(matchingGuild)
+                    this.cache.set(matchingGuild, guildWarns!.set(warn.uuid, warn))
+                } else {
+                    const warnCollection = new Collection<string, Warn>()
+                    warnCollection.set(warn.uuid, warn)
+                    this.cache.set(matchingGuild, warnCollection)
+                }
+            }
+        }
+    }
 
     /**
      * Find a warning by the warn ID.
@@ -34,8 +50,8 @@ export class WarningManager {
                     return undefined
                 }
 
-                const moderator = container.client.guilds.resolve(guild).members.cache.get(result.mod) ?? await container.client.guilds.resolve(guild).members.fetch(result.mod)
-                const member = container.client.guilds.resolve(guild).members.cache.get(result.targetId) ?? await container.client.guilds.resolve(guild).members.fetch(result.targetId)
+                const moderator = await container.client.guilds.resolve(guild).members.fetch(result.mod)
+                const member = await container.client.guilds.resolve(guild).members.fetch(result.targetId)
                 warn = new Warn(result.guildId, result.id, result.severity, result.expiration, member, moderator, result.reason, result.status, result.date)
             }
 
@@ -78,11 +94,11 @@ export class WarningManager {
             result = await this.db.warn.create({
                 data: {
                     id: warning.uuid,
-                    targetId: warning.member!.id ?? '-1',
+                    targetId: warning.member.id,
                     guildId: warning.guildID,
                     date: new Date().toISOString(),
                     expiration: warning.expiration!,
-                    mod: warning.mod?.id ?? '-1',
+                    mod: warning.mod.id,
                     reason: warning.reason,
                     severity: warning.severity,
                 }
@@ -169,6 +185,14 @@ export class WarningManager {
         return warn
     }
 
+    /**
+     * 
+     * @param guild guild to use for warning retrieval
+     * @param member member to get warnings for
+     * @param forceUpdate whether or not to forcibly check the database
+     * @param getAllWarns whether or not to get inactive warns
+     * @returns 
+     */
     async getMemberWarnings(guild: Guild, member: GuildMember, forceUpdate: boolean = false, getAllWarns: boolean = false): Promise<Warn[]> {
         if (!this.cache.has(guild)) {
             // cache-miss, hit the db
@@ -218,15 +242,6 @@ export class WarningManager {
         }
     }
 
-    async getActions(guild: Guild): Promise<GetResult<WarnAction, any>[] | undefined> {
-        const result = await this.db.guildWarns.findUnique({
-            select: { actions: true },
-            where: { id: guild.id }
-        })
-        
-        return result ? result.actions.sort((a, b) => a.severity - b.severity) : undefined
-    }
-
     public async getGuildWarnings(guild: Guild): Promise<Collection<string, Warn>> {
         const result = await this.db.guildWarns.findUnique({
             select: {
@@ -256,51 +271,12 @@ export class WarningManager {
         return guildWarnList
     }
 
-    public async addWarnAction(action: WarnActionObject, guild: Guild): Promise<WarnAction | undefined> {
-        const data = await this.db.guildWarns.findUnique({
-            select: { actions: true },
-            where: { id: guild.id }
-        })
-
-        const existingActions = data?.actions
-        if (existingActions && existingActions.length >= 10) {
-            console.warn(`Attempted to add a warn action to guild ${guild}, but they have reached the warn action limit.`)
-            return undefined // TODO: should we return an empty object instead?
-        }
-
-        await this.db.guildWarns.upsert({
-            where: {
-                id: guild.id
-            },
-            update: {},
-            create: {
-                id: guild.id
-            }
-        })
-
-        return this.db.warnAction.upsert({
-            where: {
-                guild_severity_unique: {
-                    guildId: guild.id,
-                    severity: action.severity
-                }
-            },
-            update: {},
-            create: {
-                action: action.action,
-                severity: action.severity,
-                expiration: action.expiration,
-                guildId: guild.id
-            }
-        })
-    }
-
     /**
      * Update database with current warn information
      * @param updateData updated warn object data
      */
     private async writeWarnData(updateData: WarnUpdateData) {
-        const result = await this.db.warn.update({
+        await this.db.warn.update({
             where: {
                 id: updateData.id
             }, 
@@ -327,10 +303,4 @@ type WarnUpdateData = {
 	mod?: GuildMember,
 	reason?: string,
 	status?: string
-}
-
-type WarnActionObject = {
-    action: warnAction,
-    severity: number,
-    expiration?: number
 }

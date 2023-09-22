@@ -1,17 +1,14 @@
 import { container } from '@sapphire/framework'
 import { GuildSettings } from './structures/GuildSettings'
-import type { Prisma } from '@prisma/client'
+import type { Prisma, settings } from '@prisma/client'
 
 export class SettingsManager {
 	settings: Map<string, GuildSettings> = new Map<string, GuildSettings>()
 
-	async setup(guildIDs: string[]) {
-		const guildSettings = await container.db.settings.findMany({
-			where: { guild: { in: guildIDs } }
-		})
 
+	constructor(guildIDs: string[], settings: settings[]) {
 		for (const guildID of guildIDs) {
-			const settingsJson = guildSettings.find((setting) => setting.guild === guildID) ?? new GuildSettings(guildID)
+			const settingsJson = settings.find((setting) => setting.guild === guildID) ?? new GuildSettings(guildID)
 			if (!settingsJson) {
 				// create an empty settings map
 				this.settings.set(guildID, new GuildSettings(guildID))
