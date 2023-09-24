@@ -320,9 +320,9 @@ export class UserCommand extends Subcommand {
 			}
 		}
 
-		const totalSeverity = userWarnings.reduce((acc: number, warn: Warn) => acc + warn.severity, 0) ?? severity
+		// const totalSeverity = userWarnings.reduce((acc: number, warn: Warn) => acc + warn.severity, 0) ?? severity
 		const totalWarns = userWarnings.length
-		const actions = await this.container.actions.getActions(interaction.guild)
+		// const actions = await this.container.actions.getActions(interaction.guild)
 
 
 		if(userWarnings.length === 0) {
@@ -617,6 +617,41 @@ export class UserCommand extends Subcommand {
 		}
 
 		return interaction.reply({ content: `${Emojis.Confirm} Successfully removed the ${removed.action} action for ${removed.severity} severity` })
+	}
+
+	public async chatInputActionList(interaction: FutabaCommand.ChatInputCommandInteraction) {
+		const guildActions = await this.container.actions.getActions(interaction.guild)
+
+		if (guildActions.length === 0) {
+			return interaction.reply({
+				content: `${interaction.guild} has no automated actions.`,
+				ephemeral: true
+			})
+		}
+
+		const template = new EmbedBuilder()
+			.setTitle('Warn Actions')
+			.setColor(Color.Moderation)
+			.setDescription('Actions that will be applied to users who cross the given severity threshold in warnings')
+			.setFooter({ text: interaction.guild.name })
+			.setTimestamp()
+			.setThumbnail(interaction.guild.iconURL())
+
+		const embedFields = guildActions.map((action) => {
+			return {
+				name: `Severity: ${action.severity}`,
+				value: `> Action: ${action.action as WarnAction} ${action.expiration ? `[${new DurationFormatter().format(action.expiration)}]` : ''}`,
+				inline: false
+			}
+		})
+		
+		const paginatedMessageFields = new PaginatedMessageEmbedFields()
+			.setTemplate(template)
+			.setItems(embedFields)
+			.setItemsPerPage(2)
+			.make()
+
+		return paginatedMessageFields.run(interaction).catch(() => null)
 	}
 
 	public override async autocompleteRun(interaction: FutabaCommand.AutoComplete) {
