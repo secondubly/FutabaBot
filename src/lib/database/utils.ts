@@ -11,6 +11,9 @@ export function handlePrismaError(err: PrismaClientKnownRequestError): PrismaErr
                 return new PrismaError(`Invalid ID: ${err.meta?.target}`, err.stack)
             case 'P2003':
                 return new PrismaError(`Invalid input data: ${err.meta?.data}`, err.stack)
+            case 'P2025':
+                // missing record error
+                return new PrismaError(`Operation failed because the supplied record was not found`, err.stack)
             default:
                 return new PrismaError(`Something went wrong: ${err.message}`, err.stack)
     }
