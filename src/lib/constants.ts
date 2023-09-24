@@ -3,8 +3,8 @@ export const rootDir = join(__dirname, '..', '..')
 export const srcDir = join(rootDir, 'src')
 
 export const enum Emojis {
-	Cross = '<:redCross:957909502911471636>',
-	Confirm = '<:greenTick:957909436477878302>',
+	Cross = '<:redCross:1047160911628091402>',
+	Confirm = '<:greenTick:832292523418189908>',
 	Left = '<:arrow_lilleft:959362275171508234>',
 	Right = '<:arrow_lilright:959363096781148160>',
 	Backward = '<:arrow_left_r:959362559595655179>',
