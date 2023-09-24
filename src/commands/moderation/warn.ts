@@ -17,7 +17,7 @@ import { ButtonPaginated } from '#lib/structures/classes/ButtonPaginated'
 import { groupBy } from '#lib/utils'
 import { handlePrismaError } from '#lib/database/utils'
 import { WarnAction as WarnActionPayload } from '@prisma/client'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
 @ApplyOptions<Subcommand.Options>({
 	description: 'Manage warnings for a user',
@@ -306,7 +306,20 @@ export class UserCommand extends Subcommand {
 			})
 		}
 
-		const userWarnings = await this.container.warns.getMemberWarnings(interaction.guild, member)
+		let userWarnings: Warn[] = []
+		try {
+			userWarnings = await this.container.warns.getMemberWarnings(interaction.guild, member)
+		} catch(err) {
+			if (err instanceof PrismaClientKnownRequestError) {
+				console.error(handlePrismaError(err))
+				return interaction.reply({
+					content: `${Emojis.SweatSmile} Something went wrong! Please try your request again.`
+				})
+			} else {
+				throw err
+			}
+		}
+
 		const totalSeverity = userWarnings.reduce((acc: number, warn: Warn) => acc + warn.severity, 0) ?? severity
 		const totalWarns = userWarnings.length
 		const actions = await this.container.actions.getActions(interaction.guild)
@@ -400,10 +413,23 @@ export class UserCommand extends Subcommand {
 			});
 		}
 
-		const totalWarns = (await this.container.warns.getMemberWarnings(interaction.guild, member)).length
+		let totalMemberWarns: number = 0
+		try {
+			const totalWarns = await this.container.warns.getMemberWarnings(interaction.guild, member)
+			totalMemberWarns = totalWarns.length
+		} catch(err) {
+			if (err instanceof PrismaClientKnownRequestError) {
+				console.error(handlePrismaError(err))
+				return interaction.reply({
+					content: `${Emojis.SweatSmile} Something went wrong! Please try your request again.`
+				})
+			} else {
+				throw err
+			}
+		}
 
 		
-		const response = `${member} had their warning removed.\n*They now have ${totalWarns === 1 ? `${totalWarns} warning` : `${totalWarns} warnings`}.*`
+		const response = `${member} had their warning removed.\n*They now have ${totalMemberWarns === 1 ? `${totalMemberWarns} warning` : `${totalMemberWarns} warnings`}.*`
 
 		return interaction.reply({ content: response, ephemeral: true})
 	}
@@ -418,8 +444,21 @@ export class UserCommand extends Subcommand {
 				ephemeral: true
 			});
 		}
+		
+		let memberWarns: Warn[] = []
+		try {
+			memberWarns = await this.container.warns.getMemberWarnings(interaction.guild, member, undefined, listAll)
+		} catch (err) {
+			if (err instanceof PrismaClientKnownRequestError) {
+				console.error(handlePrismaError(err))
+				return interaction.reply({
+					content: `${Emojis.SweatSmile} Something went wrong! Please try your request again.`
+				})
+			} else {
+				throw err
+			}
+		}
 
-		const memberWarns = await this.container.warns.getMemberWarnings(interaction.guild, member, undefined, listAll)
 		if(isNullishOrEmpty(memberWarns)) {
 			return interaction.reply({
 				content: `${member} has no warnings.`,
@@ -558,12 +597,15 @@ export class UserCommand extends Subcommand {
 	public async chatInputActionRemove(interaction: FutabaCommand.ChatInputCommandInteraction) {
 		const severity = interaction.options.getInteger('severity', true)
 
-		let removed: WarnActionPayload | undefined = undefined
+		let removed: WarnActionPayload | null | undefined = null
 		try {
 			removed = await this.container.actions.remove(interaction.guild, severity)
 		} catch(e) {
 			if (e instanceof PrismaClientKnownRequestError) {
-                throw handlePrismaError(e)
+				if(e.code === 'P2025') {
+					removed = undefined
+				}
+                console.error(handlePrismaError(e))
             }
 		}
 
@@ -591,7 +633,18 @@ export class UserCommand extends Subcommand {
 				return this.noAutoCompleteResults(interaction, 'warning')
 			}
 
-			const memberWarnings = await this.container.warns.getMemberWarnings(interaction.guild!, member)
+			let memberWarnings: Warn[] = []
+			try {
+				memberWarnings = await this.container.warns.getMemberWarnings(interaction.guild!, member)
+			} catch (err) {
+				if (err instanceof PrismaClientKnownRequestError) {
+					console.error(handlePrismaError(err))
+					return this.noAutoCompleteResults(interaction, 'warning')
+				} else {
+					throw err
+				}
+			}
+
 			if(isNullishOrEmpty(memberWarnings)) {
 				return this.noAutoCompleteResults(interaction, 'warning')
 			}

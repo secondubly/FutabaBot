@@ -115,7 +115,7 @@ export class WarningManager {
             }
         } catch(e) {
             if (e instanceof PrismaClientKnownRequestError) {
-                throw handlePrismaError(e)
+                console.error(handlePrismaError(e))
             }
         }
 
@@ -178,7 +178,7 @@ export class WarningManager {
             this.writeWarnData({ id: warn.uuid, status: warn.getStatus() })
         } catch(e) {
             if (e instanceof PrismaClientKnownRequestError) {
-                throw handlePrismaError(e)
+                console.error(handlePrismaError(e))
             }
         }
 
@@ -193,53 +193,45 @@ export class WarningManager {
      * @param getAllWarns whether or not to get inactive warns
      * @returns 
      */
+
     async getMemberWarnings(guild: Guild, member: GuildMember, forceUpdate: boolean = false, getAllWarns: boolean = false): Promise<Warn[]> {
+        let result: Warn[] = []
         if (!this.cache.has(guild)) {
             // cache-miss, hit the db
             const guildWarnings = await this.getGuildWarnings(guild)
             if(isNullishOrEmpty(guildWarnings)) {
                 this.cache.set(guild, guildWarnings)
-                return []
+                result = []
             }
 
             const memberWarnings = guildWarnings.filter((warn) => getAllWarns ? warn.member?.id === member.id : warn.member?.id === member.id && warn.getStatus() === WarnStatus.Active)
-            return isNullishOrEmpty(memberWarnings) ? [] : [...memberWarnings.values()]
+            result = [...memberWarnings.values()]
         }
 
         if (forceUpdate) {
             // forcibly check the database to get the latest data for this member
-            try {
-                const memberWarnings = await this.db.warn.findMany({
-                    where: { targetId: member.id }
-                })
+            const memberWarnings = await this.db.warn.findMany({
+                where: { targetId: member.id }
+            })
 
-                let result: Warn[]
-                if (memberWarnings.length > 0) {
-                    for(const warn of memberWarnings) {
-                        const moderator = container.client.guilds.resolve(guild).members.cache.get(warn.mod) ?? await container.client.guilds.resolve(guild).members.fetch(warn.mod)
-                        let warning = new Warn(warn.guildId, warn.id, warn.severity, warn.expiration, member, moderator, warn.reason, warn.status, warn.date)
-                        
-                        this.cache.get(guild)?.set(warning.uuid, warning)
-                    }
+            if (memberWarnings.length > 0) {
+                for(const warn of memberWarnings) {
+                    const moderator = await container.client.guilds.resolve(guild).members.fetch(warn.mod)
+                    let warning = new Warn(warn.guildId, warn.id, warn.severity, warn.expiration, member, moderator, warn.reason, warn.status, warn.date)
+                    
+                    // update cache
+                    this.cache.get(guild)?.set(warning.uuid, warning)
+                }
 
-                    const cacheWarnings = this.cache.get(guild)?.filter((warn) => warn.member?.id === member.id).values()
-                    result = cacheWarnings ? [...cacheWarnings] : []
-                } else {
-                    // no warnings exist for the user, we can return an empty array
-                     result = []
-                }
-                return result
-            } catch(err) {
-                if (err instanceof PrismaClientKnownRequestError) {
-                    throw handlePrismaError(err)
-                } else {
-                    throw err
-                }
+                const cacheWarnings = this.cache.get(guild)?.filter((warn) => warn.member?.id === member.id).values()
+                result = cacheWarnings ? [...cacheWarnings] : []
             }
-        } else {
-            const memberWarnings = this.cache.get(guild)?.filter((warn) => getAllWarns ? warn.member?.id === member.id : warn.member?.id === member.id && warn.getStatus() === WarnStatus.Active)
-            return isNullishOrEmpty(memberWarnings) ? [] : [...memberWarnings.values()]
         }
+        
+        const memberWarnings = this.cache.get(guild)?.filter((warn) => getAllWarns ? warn.member?.id === member.id : warn.member?.id === member.id && warn.getStatus() === WarnStatus.Active)
+        result = isNullishOrEmpty(memberWarnings) ? [] : [...memberWarnings.values()]
+        
+        return result
     }
 
     public async getGuildWarnings(guild: Guild): Promise<Collection<string, Warn>> {
