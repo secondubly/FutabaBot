@@ -20,7 +20,8 @@
 			"preLaunchTask": "tsc: build - src/tsconfig.json",
 			"envFile": "${workspaceFolder}/src/.env.development.local",
 			"outFiles": ["${workspaceFolder}/**/*.js"],
-			"resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
+			"resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+			"console": "internalConsole"
 		},
 		{
 			"type": "node",
