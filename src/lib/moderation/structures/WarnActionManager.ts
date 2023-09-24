@@ -12,21 +12,19 @@ export class WarnActionManager {
     private readonly db: PrismaClient = container.db
 
     constructor(guilds: Guild[], warnActions: WarnAction[]) {
+
+        // setup empty cache for each guild
+        for(const guild of guilds) {
+            this.cache.set(guild, [])
+        }
+        
         for(const action of warnActions) {
             const actionGuildId = action.guildId
             const matchingGuild = guilds.find((guild) => guild.id === actionGuildId)
             if(matchingGuild) {
-                if(this.cache.has(matchingGuild)) {
-                    const guildActions = this.cache.get(matchingGuild)
-
-                    const warnAction = { action: action.action, severity: action.severity, expiration: action.expiration } as WarnActionObject
-                    this.cache.set(matchingGuild, guildActions!.concat(warnAction))
-                } else {
-                    const warnActions = []
-                    const warnAction = { action: action.action, severity: action.severity, expiration: action.expiration } as WarnActionObject
-                    warnActions.push(warnAction)
-                    this.cache.set(matchingGuild, warnActions)
-                }
+                const guildActions = this.cache.get(matchingGuild)
+                const warnAction = { action: action.action, severity: action.severity, expiration: action.expiration } as WarnActionObject
+                this.cache.set(matchingGuild, [...guildActions!, warnAction])
             }
         }
     }
@@ -45,7 +43,7 @@ export class WarnActionManager {
         }
 
         // this will create a guild warns record iff it doesn't exist
-        await this.db.guildWarns.upsert({
+        const guildWarns = await this.db.guildWarns.upsert({
             where: {
                 id: guild.id
             },
@@ -55,7 +53,7 @@ export class WarnActionManager {
             }
         })
 
-        return this.db.warnAction.upsert({
+        const result = await this.db.warnAction.upsert({
             create: {
                 action: action.action,
                 severity: action.severity,
@@ -70,6 +68,14 @@ export class WarnActionManager {
                 }
             },
         })
+
+        if (result) {
+            // update cache
+            const warnAction = result as WarnActionObject
+            this.cache.get(guild)?.push(warnAction)
+        }
+
+        return result
     }
 
     public async remove(guild: Guild, severity: number): Promise<WarnAction> {
@@ -84,8 +90,9 @@ export class WarnActionManager {
 
         // update the cache
         if (result) {
-            const foundIndex = this.cache.get(guild)?.findIndex((action) => action.severity === severity)
-            if(!foundIndex || foundIndex === -1) {
+            // default to -1 if there is no cache for this guild
+            const foundIndex = this.cache.get(guild)?.findIndex((action) => action.severity === severity) ?? -1
+            if(foundIndex === -1) {
                 console.warn(`Warn object with severity ${severity} for guild ${guild} not cached`)
             } else {
                 this.cache.get(guild)?.splice(foundIndex, 1)
