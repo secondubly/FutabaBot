@@ -72,7 +72,7 @@ export class UserCommand extends FutabaCommand {
                 case 'start':
                     collector.resetTimer()
                     step = 1
-                    await this.step1(res, msg)
+                    await this.step1(res, msg, step)
                     break
                 case 'mod_roles':
                     step = 2
@@ -81,7 +81,7 @@ export class UserCommand extends FutabaCommand {
                         break
                     }
                     modRoles = res.roles
-                    msg = await this.step2(res, msg)
+                    msg = await this.step2(res, msg, step)
                     break
                 case 'admin_roles':
                     step = 3
@@ -98,12 +98,12 @@ export class UserCommand extends FutabaCommand {
                         })
                         break
                     }
-                    msg = await this.step3(res, msg)
+                    msg = await this.step3(res, msg, step)
                     break
                 case 'retry_modlog':
                     collector.resetTimer()
                     modLogChannel = undefined
-                    msg = await this.step3(res, msg) // rerun step 3
+                    msg = await this.step3(res, msg, step) // rerun step 3
                     break
                 // @ts-expect-error (ignore the fall-through here, it's for simplicity)
                 case 'modlog_channel':
@@ -129,7 +129,7 @@ export class UserCommand extends FutabaCommand {
                         step = 3
                         collector.resetTimer()
                         modLogChannel = undefined
-                        msg = await this.step3(res, msg)
+                        msg = await this.step3(res, msg, step)
                     }
                     break
                 case 'make_modlog':
@@ -145,7 +145,7 @@ export class UserCommand extends FutabaCommand {
                     collector.resetTimer()
                     modLogChannel = undefined
                     step = 4
-                    msg = await this.step4(res, msg)
+                    msg = await this.step4(res, msg, step)
                     break
                 
                 case 'public_modlog':
@@ -309,7 +309,7 @@ export class UserCommand extends FutabaCommand {
      * @param prevMessage 
      * @returns 
      */
-    private step1(interaction: MessageComponentInteraction, prevMessage: Message): Promise<Message> {
+    private step1(interaction: MessageComponentInteraction, prevMessage: Message, _stage: number): Promise<Message> {
         const embed = new EmbedBuilder(prevMessage.embeds[0].data).setFields([
             {
                 name: `What are the moderator roles for this server? (Min: 1, Max: 3)`,
@@ -332,20 +332,20 @@ export class UserCommand extends FutabaCommand {
         }) as Promise<Message>
     }
 
-    private step2(interaction: MessageComponentInteraction, prevMessage: Message): Promise<Message> {
+    private step2(interaction: MessageComponentInteraction, prevMessage: Message, _step: number): Promise<Message> {
         const embed = new EmbedBuilder(prevMessage.embeds[0].data).setFields([
             {
-                name: `What are the admin roles for this server? (Min: 1, Max: 3)`,
+                name: `What are the admin roles for this server? (Min: 0, Max: 2)`,
                 value: `Only the **selected** roles will be considered admins.\n` +
                 `**Important**: Moderation roles and Admin roles __cannot__ be the same.`
             }
         ])
 
         const rolesMenu = new RoleSelectMenuBuilder()
-            .setCustomId('mod_roles')
-            .setPlaceholder('Select moderator roles:')
-            .setMinValues(1)
-            .setMaxValues(3)
+            .setCustomId('admin_roles')
+            .setPlaceholder('Select administrator roles:')
+            .setMinValues(0)
+            .setMaxValues(2)
 
         return interaction.update({
             embeds: [embed],
@@ -354,7 +354,7 @@ export class UserCommand extends FutabaCommand {
         }) as Promise<Message>
     }
 
-    private async step3(interaction: MessageComponentInteraction, prevMessage: Message): Promise<Message> {
+    private async step3(interaction: MessageComponentInteraction, prevMessage: Message, _step: number): Promise<Message> {
         const embed = new EmbedBuilder(prevMessage.embeds[0].data).setFields([
             {
                 name: `Where should moderation logs be sent?`,
@@ -366,7 +366,7 @@ export class UserCommand extends FutabaCommand {
 
         const channelMenu = new ChannelSelectMenuBuilder()
             .setCustomId('modlog_channel')
-            .setPlaceholder('Select Mmoderation logs channel:')
+            .setPlaceholder('Select Moderation logs channel:')
             .setMinValues(0)
             .setMaxValues(1)
             .setChannelTypes(ChannelType.GuildText)
@@ -397,7 +397,7 @@ export class UserCommand extends FutabaCommand {
         }) as Promise<Message>
     }
 
-    private async step4(interaction: MessageComponentInteraction, prevMessage: Message): Promise<Message> {
+    private async step4(interaction: MessageComponentInteraction, prevMessage: Message, _step: number): Promise<Message> {
         const embed = new EmbedBuilder(prevMessage.embeds[0].data).setFields([
             {
                 name: `Who should be able to see the mod log channel?`,
