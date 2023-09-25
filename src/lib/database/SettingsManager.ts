@@ -33,6 +33,7 @@ export class SettingsManager {
 
 	updateSetting(guildID: string, setting: string, value: unknown) {
 		if (!this.settings.has(guildID)) {
+			// TODO: if a guild isn't cached, we should create one/check the db for it
 			console.warn("Tried to update settings for a server that hasn't been set up yet!")
 			return undefined
 		}
