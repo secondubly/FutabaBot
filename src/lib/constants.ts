@@ -35,5 +35,6 @@ export const enum WarnStatus {
 
 export const enum Color {
 	Core = 0xffa500,
-	Moderation = 0x228b22
+	Moderation = 0x228b22,
+	Admin = 0xff6500
 }
