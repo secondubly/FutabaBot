@@ -320,9 +320,9 @@ export class UserCommand extends Subcommand {
 			}
 		}
 
-		// const totalSeverity = userWarnings.reduce((acc: number, warn: Warn) => acc + warn.severity, 0) ?? severity
+		const totalSeverity = userWarnings.reduce((acc: number, warn: Warn) => acc + warn.severity, 0) ?? severity
 		const totalWarns = userWarnings.length
-		// const actions = await this.container.actions.getActions(interaction.guild)
+		const actions = await this.container.actions.getActions(interaction.guild)
 
 
 		if(userWarnings.length === 0) {
@@ -354,7 +354,14 @@ export class UserCommand extends Subcommand {
 		}
 
 		
-		// TODO: log WarnActionData to a moderator logs channel
+		if (await this.container.settings.hasSetting(interaction.guild.id, 'mod_log')) {
+			this.container.client.emit('modAction', data)
+		}
+
+		if(!isNullishOrEmpty(actions)) {
+			this.container.client.emit('warnAction', member, totalSeverity, actions)
+		}
+
 
 		if(deleteMsgs) {
 			if (!interaction.guild.members.me?.permissions.has(PermissionFlagsBits.ManageMessages)) {
