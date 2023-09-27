@@ -1,7 +1,7 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
+import { PrismaClientInitializationError, PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
 import { PrismaError } from "./structures/PrismaError"
 
-export function handlePrismaError(err: PrismaClientKnownRequestError): PrismaError {
+export function handlePrismaRequestError(err: PrismaClientKnownRequestError): PrismaError {
     switch (err.code) {
         case 'P2002': 
             // duplicate key errors
@@ -16,5 +16,14 @@ export function handlePrismaError(err: PrismaClientKnownRequestError): PrismaErr
                 return new PrismaError(`Operation failed because the supplied record was not found`, err.stack)
             default:
                 return new PrismaError(`Something went wrong: ${err.message}`, err.stack)
+    }
+}
+
+export function handlePrismaInitializationError(err: PrismaClientInitializationError): PrismaError {
+    switch (err.errorCode) {
+        case 'P1001':
+            return new PrismaError(`Could not connect to database server, please make sure your database is running.`, err.stack)
+        default:
+            return new PrismaError(`Something went wrong: ${err.message}`, err.stack)
     }
 }
