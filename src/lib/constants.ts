@@ -38,3 +38,13 @@ export const enum Color {
 	Moderation = 0x228b22,
 	Admin = 0xff6500
 }
+
+export enum Severity {
+	ban = 0xf80404,
+	kick = 0xfb9f06,
+	timeout = 0xffcf06,
+	softban = 0xfc7c09,
+	warn = 0xfcfc7c,
+	unban = 0x94ec94,
+	warn_remove = 0x21fec0
+}
