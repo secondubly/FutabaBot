@@ -2,7 +2,7 @@ import { Collection, Guild, GuildMember } from "discord.js"
 import { Warn } from "#lib/moderation/structures/Warn"
 import { container } from "@sapphire/framework"
 import { PrismaClient } from "@prisma/client";
-import { handlePrismaError } from "../../database/utils"
+import { handlePrismaRequestError } from "../../database/utils"
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
 import { WarnStatus } from "#lib/constants";
 import { isNullishOrEmpty } from "@sapphire/utilities";
@@ -115,7 +115,7 @@ export class WarningManager {
             }
         } catch(e) {
             if (e instanceof PrismaClientKnownRequestError) {
-                console.error(handlePrismaError(e))
+                console.error(handlePrismaRequestError(e))
             }
         }
 
@@ -178,7 +178,7 @@ export class WarningManager {
             this.writeWarnData({ id: warn.uuid, status: warn.getStatus() })
         } catch(e) {
             if (e instanceof PrismaClientKnownRequestError) {
-                console.error(handlePrismaError(e))
+                console.error(handlePrismaRequestError(e))
             }
         }
 

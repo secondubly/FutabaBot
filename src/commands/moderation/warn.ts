@@ -2,7 +2,7 @@ import { Color, Emojis, WarnSeverity, WarnStatus } from '#lib/constants'
 import { Warn } from '#lib/moderation/structures/Warn'
 import { Timestamp } from '#lib/structures/classes/Timestamp'
 import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
-import { WarnAction, warnActionData } from '#lib/types/Data'
+import { WarnAction, WarnActionData } from '#lib/types/Data'
 import { runAllChecks } from '#lib/util/discord/discord'
 import { mins } from '#lib/util/functions/duration'
 import { getGuildIds } from '#lib/util/utils'
@@ -15,7 +15,7 @@ import { randomUUID } from 'node:crypto'
 import { cutText, isNullishOrEmpty } from '@sapphire/utilities'
 import { ButtonPaginated } from '#lib/structures/classes/ButtonPaginated'
 import { groupBy } from '#lib/utils'
-import { handlePrismaError } from '#lib/database/utils'
+import { handlePrismaRequestError } from '#lib/database/utils'
 import { WarnAction as WarnActionPayload } from '@prisma/client'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
@@ -311,7 +311,7 @@ export class UserCommand extends Subcommand {
 			userWarnings = await this.container.warns.getMemberWarnings(interaction.guild, member)
 		} catch(err) {
 			if (err instanceof PrismaClientKnownRequestError) {
-				console.error(handlePrismaError(err))
+				console.error(handlePrismaRequestError(err))
 				return interaction.reply({
 					content: `${Emojis.SweatSmile} Something went wrong! Please try your request again.`
 				})
@@ -343,7 +343,7 @@ export class UserCommand extends Subcommand {
 
 		await interaction.reply({ content: response, ephemeral: true })
 
-		const data: warnActionData = {
+		const data: WarnActionData = {
 			warnId: warn.uuid,
 			target: member,
 			moderator,
@@ -358,9 +358,9 @@ export class UserCommand extends Subcommand {
 			this.container.client.emit('modAction', data)
 		}
 
-		if(!isNullishOrEmpty(actions)) {
-			this.container.client.emit('warnAction', member, totalSeverity, actions)
-		}
+		// if(!isNullishOrEmpty(actions)) {
+		// 	this.container.client.emit('warnAction', member, totalSeverity, actions)
+		// }
 
 
 		if(deleteMsgs) {
@@ -426,7 +426,7 @@ export class UserCommand extends Subcommand {
 			totalMemberWarns = totalWarns.length
 		} catch(err) {
 			if (err instanceof PrismaClientKnownRequestError) {
-				console.error(handlePrismaError(err))
+				console.error(handlePrismaRequestError(err))
 				return interaction.reply({
 					content: `${Emojis.SweatSmile} Something went wrong! Please try your request again.`
 				})
@@ -457,7 +457,7 @@ export class UserCommand extends Subcommand {
 			memberWarns = await this.container.warns.getMemberWarnings(interaction.guild, member, undefined, listAll)
 		} catch (err) {
 			if (err instanceof PrismaClientKnownRequestError) {
-				console.error(handlePrismaError(err))
+				console.error(handlePrismaRequestError(err))
 				return interaction.reply({
 					content: `${Emojis.SweatSmile} Something went wrong! Please try your request again.`
 				})
@@ -612,7 +612,7 @@ export class UserCommand extends Subcommand {
 				if(e.code === 'P2025') {
 					removed = undefined
 				}
-                console.error(handlePrismaError(e))
+                console.error(handlePrismaRequestError(e))
             }
 		}
 
@@ -680,7 +680,7 @@ export class UserCommand extends Subcommand {
 				memberWarnings = await this.container.warns.getMemberWarnings(interaction.guild!, member)
 			} catch (err) {
 				if (err instanceof PrismaClientKnownRequestError) {
-					console.error(handlePrismaError(err))
+					console.error(handlePrismaRequestError(err))
 					return this.noAutoCompleteResults(interaction, 'warning')
 				} else {
 					throw err

@@ -16,7 +16,7 @@ export interface BaseWarnActionData extends BaseModActionData {
 
 type warnSeverityNum = 1 | 2 | 3 | 4 | 5;
 
-export type warnActionData = BaseWarnActionData & {
+export type WarnActionData = BaseWarnActionData & {
     severity: warnSeverityNum
     duration: Timestamp
 }
@@ -26,7 +26,7 @@ export interface TimeoutActionData extends BaseModActionData {
     duration: Timestamp
 }
 
-export type ModActionData = (Partial<TimeoutActionData> | Partial<warnActionData>) & BaseModActionData
+export type ModActionData = (Partial<TimeoutActionData> | Partial<WarnActionData>) & BaseModActionData
 
 export type WarnAction = Exclude<modAction, 'warn' | 'warn_remove' | 'unban'>
 
