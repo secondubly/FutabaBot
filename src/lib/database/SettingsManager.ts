@@ -1,4 +1,3 @@
-import { container } from '@sapphire/framework'
 import { GuildSettings } from './structures/GuildSettings'
 import type { Prisma, settings } from '@prisma/client'
 

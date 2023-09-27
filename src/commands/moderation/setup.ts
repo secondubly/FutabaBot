@@ -1,4 +1,4 @@
-import { Color } from "#lib/constants";
+import { Color, FutabaSettings } from "#lib/constants";
 import { FutabaCommand } from "#lib/structures/commands/FutabaCommand";
 import { PermissionLevels } from "#lib/types/Enum";
 import { mins, sec } from "#lib/util/functions/duration";
@@ -174,7 +174,7 @@ export class UserCommand extends FutabaCommand {
 
             if (reason === 'Moderation setup complete') {
                 // add data to cache
-                this.container.settings.updateSetting(interaction.guildId, 'mod_log', modLogChannel?.id)
+                this.container.settings.updateSetting(interaction.guildId, FutabaSettings.ModLogs, modLogChannel?.id)
                 this.container.settings.updateSetting(interaction.guildId, 'admin_roles', adminRoles.map((a) => a.id))
                 this.container.settings.updateSetting(interaction.guildId, 'mod_roles', modRoles.map((m) => m.id))
 

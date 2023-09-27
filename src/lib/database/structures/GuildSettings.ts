@@ -6,7 +6,7 @@ export class GuildSettings {
 	settings = new Collection()
 
 	private guildID: string
-	constructor(guildID: string, settings?: Prisma.JsonObject, warns?: Prisma.JsonObject) {
+	constructor(guildID: string, settings?: Prisma.JsonObject) {
 		this.guildID = guildID
 		if (!settings) {
 			return

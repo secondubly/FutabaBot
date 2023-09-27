@@ -48,3 +48,7 @@ export enum Severity {
 	unban = 0x94ec94,
 	warn_remove = 0x21fec0
 }
+
+export enum FutabaSettings {
+	ModLogs = 'mod_log'
+}

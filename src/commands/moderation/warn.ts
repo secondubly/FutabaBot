@@ -1,4 +1,4 @@
-import { Color, Emojis, WarnSeverity, WarnStatus } from '#lib/constants'
+import { Color, Emojis, FutabaSettings, WarnSeverity, WarnStatus } from '#lib/constants'
 import { Warn } from '#lib/moderation/structures/Warn'
 import { Timestamp } from '#lib/structures/classes/Timestamp'
 import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
@@ -18,6 +18,7 @@ import { groupBy } from '#lib/utils'
 import { handlePrismaRequestError } from '#lib/database/utils'
 import { WarnAction as WarnActionPayload } from '@prisma/client'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import { FutabaEvents } from '#lib/types/Events'
 
 @ApplyOptions<Subcommand.Options>({
 	description: 'Manage warnings for a user',
@@ -354,8 +355,8 @@ export class UserCommand extends Subcommand {
 		}
 
 		
-		if (await this.container.settings.hasSetting(interaction.guild.id, 'mod_log')) {
-			this.container.client.emit('modAction', data)
+		if (await this.container.settings.hasSetting(interaction.guild.id, FutabaSettings.ModLogs)) {
+			this.container.client.emit(FutabaEvents.ModAction, data)
 		}
 
 		// if(!isNullishOrEmpty(actions)) {
