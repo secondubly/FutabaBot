@@ -13,7 +13,11 @@ export class GuildSettings {
 		}
 
 
-		this.setup(settings)
+
+		
+
+
+		
 	}
 
 	async fetch(setting: string): Promise<unknown> {

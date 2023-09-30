@@ -7,7 +7,7 @@ export class SettingsManager {
 
 	constructor(guildIDs: string[], settings: settings[]) {
 		for (const guildID of guildIDs) {
-			const settingsJson = settings.find((setting) => setting.guild === guildID) ?? new GuildSettings(guildID)
+			const settingsJson = settings.find((setting) => setting.guild === guildID)
 			if (!settingsJson) {
 				// create an empty settings map
 				this.settings.set(guildID, new GuildSettings(guildID))

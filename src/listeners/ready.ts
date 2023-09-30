@@ -94,14 +94,19 @@ ${line03}${dev ? ` ${pad}${blc('<')}${llc('/')}${blc('>')} ${llc('DEVELOPMENT MO
         })
 
 		const warns: Warn[] = []
-		for (const warn of result[0].warns) {
-			const { client } = this.container
-			const guild = await client.guilds.fetch(warn.guildId)
-			const target = await guild.members.fetch(warn.targetId)
-			const mod = await guild.members.fetch(warn.mod)
-			warns.push(new Warn(warn.guildId, warn.id, warn.severity, warn.expiration, target, mod, warn.reason, warn.status, warn.date))
+		if(result.length === 0) {
+			// create empty warn manager
+			this.container.warns = new WarningManager([], [])
+		} else  {
+			for (const warn of result[0].warns) {
+				const { client } = this.container
+				const guild = await client.guilds.fetch(warn.guildId)
+				const target = await guild.members.fetch(warn.targetId)
+				const mod = await guild.members.fetch(warn.mod)
+				warns.push(new Warn(warn.guildId, warn.id, warn.severity, warn.expiration, target, mod, warn.reason, warn.status, warn.date))
+			}
+			this.container.warns = new WarningManager([...guilds], warns)
 		}
-		this.container.warns = new WarningManager([...guilds], warns)
 	}
 
 	private async warnActionManagerSetup() {
@@ -115,7 +120,7 @@ ${line03}${dev ? ` ${pad}${blc('<')}${llc('/')}${blc('>')} ${llc('DEVELOPMENT MO
 			where: { id: { in: guildIDs } }
 		})
 
-		const warnActions: WarnAction[] = result[0].actions
+		const warnActions: WarnAction[] = result.length > 0 ? result[0].actions : []
 		this.container.actions = new WarnActionManager([...guilds], warnActions)
 	}
 }
