@@ -359,9 +359,9 @@ export class UserCommand extends Subcommand {
 			this.container.client.emit(FutabaEvents.ModAction, data)
 		}
 
-		// if(!isNullishOrEmpty(actions)) {
-		// 	this.container.client.emit('warnAction', member, totalSeverity, actions)
-		// }
+		if(!isNullishOrEmpty(actions)) {
+			this.container.client.emit('warnAction', member, totalSeverity, actions)
+		}
 
 
 		if(deleteMsgs) {
