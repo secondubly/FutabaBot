@@ -101,9 +101,7 @@ export class GuildSettings {
 
 	private setup(settings: Prisma.JsonObject) {
 		// @ts-ignore: Argument of type <whatever> is not assignable to parameter of type 'string'.
-		const settingsObj = JSON.parse(settings)
-		console.log(settingsObj)
-		for (const [key, value] of Object.entries(settingsObj)) {
+		for (const [key, value] of Object.entries(settings)) {
 			this.settings.set(key, value)
 		}
 	}
