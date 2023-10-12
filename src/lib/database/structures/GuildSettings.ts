@@ -99,20 +99,10 @@ export class GuildSettings {
 		}).then(() => { /* no-op */ })
 	}
 
-	private arrayTOJSON(arr: unknown[]): string {
-		const arrayJSON: { [key: string]: unknown } = {}
-		for (let i = 0; i < arr.length; i = i + 2) {
-			const key = arr[i] as string
-			const value = arr[i + 1] as unknown
-			arrayJSON[key] = value
-		}
-
-		return JSON.stringify(arrayJSON)
-	}
-
 	private setup(settings: Prisma.JsonObject) {
 		// @ts-ignore: Argument of type <whatever> is not assignable to parameter of type 'string'.
 		const settingsObj = JSON.parse(settings)
+		console.log(settingsObj)
 		for (const [key, value] of Object.entries(settingsObj)) {
 			this.settings.set(key, value)
 		}
