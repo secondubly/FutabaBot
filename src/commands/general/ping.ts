@@ -1,36 +1,18 @@
 import { ApplyOptions } from '@sapphire/decorators'
 import { isStageChannel, isTextChannel } from '@sapphire/discord.js-utilities'
-import { Command } from '@sapphire/framework'
-import { ApplicationCommandType, Message } from 'discord.js'
+import { Message } from 'discord.js'
+import { FutabaCommand } from '#lib/structures/commands/FutabaCommand'
+import type { Command } from '@sapphire/framework'
+import { getGuildIds } from '#lib/util/utils'
+// import { ApplicationCommandType } from 'discord.js'
 
-@ApplyOptions<Command.Options>({
+@ApplyOptions<FutabaCommand.Options>({
 	description: 'ping pong'
 })
-export class UserCommand extends Command {
-	// Register Chat Input and Context Menu command
+export class UserCommand extends FutabaCommand {
 	public override registerApplicationCommands(registry: Command.Registry) {
-		// Register Chat Input command
-		registry.registerChatInputCommand({
-			name: this.name,
-			description: this.description
-		})
-
-		// Register Context Menu command available from any message
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.Message
-		})
-
-		// Register Context Menu command available from any user
-		registry.registerContextMenuCommand({
-			name: this.name,
-			type: ApplicationCommandType.User
-		})
-	}
-
-	// Message command
-	public async messageRun(message: Message) {
-		return this.sendPing(message)
+		registry.registerChatInputCommand((builder) => builder.setName(this.name).setDescription(this.description), 
+		{ guildIds: getGuildIds() })
 	}
 
 	// Chat Input (slash) command
@@ -38,12 +20,7 @@ export class UserCommand extends Command {
 		return this.sendPing(interaction)
 	}
 
-	// Context Menu command
-	public async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {
-		return this.sendPing(interaction)
-	}
-
-	private async sendPing(interactionOrMessage: Message | Command.ChatInputCommandInteraction | Command.ContextMenuCommandInteraction) {
+	private async sendPing(interactionOrMessage: Message | Command.ChatInputCommandInteraction) {
 		const channel = interactionOrMessage.channel
 		if (!isTextChannel(channel) || isStageChannel(channel)) {
 			return

@@ -5,16 +5,23 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Docker: Attach to Node",
+			"type": "node",
+			"request": "attach",
+			"preLaunchTask": "Compose Up",
+			"postDebugTask": "Compose Down"
+		},
+		{
 			"type": "node",
 			"request": "launch",
 			"name": "Debug Typescript",
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}/dist/FutabaBot.js",
 			"preLaunchTask": "tsc: build - src/tsconfig.json",
-			"env": {
-				"NODE_ENV": "development"
-			},
-			"outFiles": ["${workspaceFolder}/**/*.js"]
+			"envFile": "${workspaceFolder}/src/.env.development.local",
+			"outFiles": ["${workspaceFolder}/**/*.js"],
+			"resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+			"console": "internalConsole"
 		},
 		{
 			"type": "node",

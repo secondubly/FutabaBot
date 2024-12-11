@@ -45,3 +45,16 @@ function getGuildInfo(guild: Guild | null) {
 	if (guild === null) return 'Direct Messages'
 	return `${guild.name}[${cyan(guild.id)}]`
 }
+
+export function groupBy(data: any[], key: string): Map<unknown, unknown> {
+	const groupedMap = new Map();
+	for(const item of data) {
+		if(!groupedMap.has(item[key])) {
+			groupedMap.set(item[key], [])
+		}
+
+		groupedMap.get(item[key]).push(item)
+	}
+
+	return groupedMap
+}

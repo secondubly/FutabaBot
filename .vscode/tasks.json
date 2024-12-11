@@ -1,0 +1,28 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Compose Up",
+			"type": "docker-compose",
+			"dockerCompose": {
+				"up": {
+					"detached": true,
+					"build": true,
+					"profiles": ["dev"]
+				},
+				"envFile": "${workspaceFolder}/src/.env.development.local",
+				"files": ["${workspaceFolder}/docker-compose.yml"]
+			}
+		},
+		{
+			"label": "Compose Down",
+			"type": "docker-compose",
+			"dockerCompose": {
+				"down": {
+					"removeVolumes": true,
+					"removeImages": "all"
+				}
+			}
+		}
+	]
+}
